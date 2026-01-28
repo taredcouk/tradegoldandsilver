@@ -23,7 +23,7 @@ const Navbar = () => {
             <Link href="/" className="text-2xl font-bold tracking-tight">
               <span className="text-white">Trade</span>
               <span className="text-amber-500">Gold</span>
-              <span className="text-white">&</span>
+              <span className="text-white">and</span>
               <span className="text-slate-300">Silver</span>
             </Link>
           </div>
