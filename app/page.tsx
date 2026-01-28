@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import Services from "@/components/Services";
 import Roadmap from "@/components/Roadmap";
 import About from "@/components/About";
+import FAQ from "@/components/FAQ";
 
 export const metadata: Metadata = {
   title: "Trading Gold and Silver Online | Buy & Sell Precious Metals",
@@ -20,6 +21,7 @@ export default function Home() {
         <Services />
         <About />
         <Roadmap />
+        <FAQ />
       </main>
 
       {/* Footer Placeholder */}
