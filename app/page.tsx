@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
+import About from "@/components/About";
 
 export const metadata: Metadata = {
   title: "Trading Gold and Silver Online | Buy & Sell Precious Metals",
@@ -16,6 +17,7 @@ export default function Home() {
       <main className="flex-grow">
         <Hero />
         <Services />
+        <About />
       </main>
 
       {/* Footer Placeholder */}
