@@ -18,7 +18,7 @@ const Hero = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-20 lg:py-32">
         <div className="max-w-3xl">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight mb-6">
-            The best place to <span className="text-green-600">Buy</span> and <span className="text-red-600">Sell</span> <span className="text-amber-500">gold and silver</span> online
+            The best place to Buy and Sell <span className="text-amber-500">gold</span> and silver online
           </h1>
 
           <p className="text-xl lg:text-2xl text-slate-300 mb-10 leading-relaxed max-w-2xl">
