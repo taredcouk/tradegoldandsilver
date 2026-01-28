@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Coins, Send } from "lucide-react";
+import { Mail, Send } from "lucide-react";
 
 const Subscribe = () => {
   return (
@@ -39,7 +39,7 @@ const Subscribe = () => {
                 ))}
               </motion.div>
               <div className="relative bg-slate-950 p-6 rounded-full shadow-inner shadow-amber-500/50">
-                <Coins size={64} className="text-amber-500" />
+                <Mail size={64} className="text-amber-500" />
               </div>
             </div>
 
