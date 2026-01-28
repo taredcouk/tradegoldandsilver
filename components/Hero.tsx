@@ -66,30 +66,6 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Side Visual - Gold bars / charts */}
-      <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 w-1/3 h-full max-h-[600px] z-10 pointer-events-none">
-        <div className="relative w-full h-full">
-            {/* Representative gold bar element */}
-            <div className="absolute top-10 right-10 w-64 h-40 bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 rounded-lg rotate-12 shadow-2xl blur-[1px]" />
-            <div className="absolute top-24 right-20 w-64 h-40 bg-gradient-to-br from-amber-400 via-amber-600 to-amber-800 rounded-lg -rotate-6 shadow-2xl" />
-
-            {/* Chart line representation */}
-            <svg className="absolute bottom-20 right-0 w-full h-40 overflow-visible opacity-40" viewBox="0 0 400 100">
-                <path
-                    d="M0 80 Q 50 20, 100 60 T 200 10 T 300 70 T 400 30"
-                    fill="none"
-                    stroke="url(#goldGradient)"
-                    strokeWidth="4"
-                />
-                <defs>
-                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#d97706" />
-                        <stop offset="100%" stopColor="#fbbf24" />
-                    </linearGradient>
-                </defs>
-            </svg>
-        </div>
-      </div>
     </section>
   );
 };
