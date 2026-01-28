@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import Services from "@/components/Services";
 
 export const metadata: Metadata = {
   title: "Trading Gold and Silver Online | Buy & Sell Precious Metals",
@@ -14,16 +15,7 @@ export default function Home() {
       <Navbar />
       <main className="flex-grow">
         <Hero />
-
-        {/* Placeholder for future sections */}
-        <section className="bg-white py-20">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Why Trade with Us?</h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">
-              We provide the most secure and cost-effective way to buy physical gold and silver online.
-            </p>
-          </div>
-        </section>
+        <Services />
       </main>
 
       {/* Footer Placeholder */}
