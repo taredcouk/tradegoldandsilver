@@ -18,8 +18,8 @@ export default function Home() {
       <main className="flex-grow">
         <Hero />
         <Services />
-        <Roadmap />
         <About />
+        <Roadmap />
       </main>
 
       {/* Footer Placeholder */}

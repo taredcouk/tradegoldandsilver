@@ -48,58 +48,86 @@ const Roadmap = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-20">
-          <h2 className="text-amber-500 font-bold tracking-widest uppercase text-sm mb-3">Roadmap</h2>
           <h3 className="text-white text-4xl md:text-5xl font-bold">
             Roadmap Of <span className="text-amber-500">Platform</span>
           </h3>
         </div>
 
         {/* Desktop View */}
-        <div className="hidden lg:block relative py-20">
+        <div className="hidden lg:block relative py-10">
           {/* Central Connecting Line */}
-          <div className="absolute top-1/2 left-0 w-full h-0.5 border-t-2 border-dashed border-amber-500/30 -translate-y-1/2" />
+          <div className="absolute top-1/2 left-0 w-full h-0.5 border-t-2 border-dashed border-amber-500/20 -translate-y-1/2" />
 
-          <div className="grid grid-cols-6 gap-4">
+          <div className="grid grid-cols-6 gap-6">
             {steps.map((step, index) => {
               const isTop = index % 2 === 0;
               const isFirst = index === 0;
 
               return (
-                <div key={index} className="relative">
-                  {/* Step Card */}
-                  <motion.div
-                    initial={{ opacity: 0, y: isTop ? -20 : 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className={`p-6 rounded-2xl bg-slate-900 border border-slate-800 relative z-20
-                      ${isTop ? "mb-24" : "mt-24"}
-                      ${isFirst ? "shadow-[0_0_30px_rgba(251,191,36,0.2)] border-amber-500/50" : ""}`}
-                  >
-                    {isFirst && (
-                      <div className="absolute -inset-1 bg-amber-500/20 blur-xl rounded-2xl -z-10" />
+                <div key={index} className="relative h-[550px] flex flex-col">
+                  {/* Top Card Slot */}
+                  <div className="flex-1 flex flex-col justify-end pb-8">
+                    {isTop && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.1 }}
+                        className={`p-5 rounded-2xl bg-slate-900 border border-slate-800 relative z-20
+                          ${isFirst ? "shadow-[0_0_30px_rgba(251,191,36,0.2)] border-amber-500/50" : ""}`}
+                      >
+                        {isFirst && (
+                          <div className="absolute -inset-1 bg-amber-500/20 blur-xl rounded-2xl -z-10" />
+                        )}
+
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={`p-2 rounded-lg ${isFirst ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-amber-500"}`}>
+                            <step.icon size={20} />
+                          </div>
+                          <span className="text-amber-500/50 font-mono text-xs">Step 0{index + 1}</span>
+                        </div>
+
+                        <h4 className="text-lg font-bold text-white mb-2">{step.title}</h4>
+                        <p className="text-slate-400 text-xs leading-relaxed">{step.description}</p>
+                      </motion.div>
                     )}
+                  </div>
 
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`p-2 rounded-lg ${isFirst ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-amber-500"}`}>
-                        <step.icon size={24} />
-                      </div>
-                      <span className="text-amber-500/50 font-mono text-sm">Step 0{index + 1}</span>
-                    </div>
+                  {/* Center Dot Area */}
+                  <div className="h-12 relative flex justify-center items-center">
+                    {/* Vertical connector */}
+                    <div className={`absolute left-1/2 -translate-x-1/2 w-0.5 border-l-2 border-dashed border-amber-500/30
+                      ${isTop ? "h-10 bottom-1/2" : "h-10 top-1/2"}`}
+                    />
 
-                    <h4 className="text-xl font-bold text-white mb-2">{step.title}</h4>
-                    <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
-                  </motion.div>
+                    {/* Dot */}
+                    <div className={`w-5 h-5 rounded-full bg-slate-950 border-2 border-amber-500 z-30 relative
+                      ${isFirst ? "shadow-[0_0_15px_rgba(251,191,36,1)]" : ""}`}
+                    />
+                  </div>
 
-                  {/* Dot on line */}
-                  <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-slate-950 border-2 border-amber-500 z-30
-                    ${isFirst ? "shadow-[0_0_10px_rgba(251,191,36,1)]" : ""}`}
-                  />
+                  {/* Bottom Card Slot */}
+                  <div className="flex-1 flex flex-col justify-start pt-8">
+                    {!isTop && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.1 }}
+                        className="p-5 rounded-2xl bg-slate-900 border border-slate-800 relative z-20"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-2 rounded-lg bg-slate-800 text-amber-500">
+                            <step.icon size={20} />
+                          </div>
+                          <span className="text-amber-500/50 font-mono text-xs">Step 0{index + 1}</span>
+                        </div>
 
-                  {/* Vertical connector to card */}
-                  <div className={`absolute left-1/2 -translate-x-1/2 w-0.5 border-l-2 border-dashed border-amber-500/30 h-12 z-10
-                    ${isTop ? "top-1/2 mt-2" : "bottom-1/2 mb-2"}`}
-                  />
+                        <h4 className="text-lg font-bold text-white mb-2">{step.title}</h4>
+                        <p className="text-slate-400 text-xs leading-relaxed">{step.description}</p>
+                      </motion.div>
+                    )}
+                  </div>
                 </div>
               );
             })}
