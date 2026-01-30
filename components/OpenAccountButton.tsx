@@ -20,7 +20,6 @@ const OpenAccountButton = ({ className, showTooltipOnHover = false }: OpenAccoun
       <Link
         href="/open-account"
         className={className || "bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-md text-sm font-bold transition-all transform hover:scale-105 shadow-lg shadow-amber-900/20 flex items-center justify-center"}
-        title="*Referral Ad: Tared Ltd earns a commission."
       >
         Open Account*
         {/* Only show icon if it looks like a hero button (large) */}
@@ -38,9 +37,9 @@ const OpenAccountButton = ({ className, showTooltipOnHover = false }: OpenAccoun
       </Link>
 
       {showTooltip && (
-        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs bg-slate-800 text-white text-[10px] py-1 px-2 rounded shadow-xl border border-slate-700 pointer-events-none">
+        <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2 w-max max-w-xs bg-slate-800 text-white text-[10px] py-1 px-2 rounded shadow-xl border border-slate-700 pointer-events-none">
           *Referral Ad: Tared Ltd earns a commission.
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-800" />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-slate-800" />
         </div>
       )}
     </div>
