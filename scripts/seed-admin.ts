@@ -29,15 +29,20 @@ async function seed() {
     console.log('Connected to MongoDB');
 
     const adminUsername = 'malekalbawaih';
-    // Password was provided as [secret] in the prompt
-    // I'll use the one I used before.
-    const adminPassword = 'malekalbawaih_admin_2024';
-    const adminEmail = 'admin@tradegold.com';
+    const adminPassword = 'Memo1994';
+    const adminEmail = 'admin@tared.co.uk';
 
     const existingUser = await User.findOne({ username: adminUsername });
 
     if (existingUser) {
-      console.log('Admin user already exists');
+      console.log('Admin user already exists. Updating credentials...');
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      await User.updateOne({ username: adminUsername }, {
+        email: adminEmail,
+        password: hashedPassword,
+        role: 'admin',
+      });
+      console.log('Admin user updated successfully');
     } else {
       const hashedPassword = await bcrypt.hash(adminPassword, 10);
       await User.create({
