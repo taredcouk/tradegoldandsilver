@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import OpenAccountButton from "./OpenAccountButton";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,12 +41,7 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
-              <Link
-                href="/open-account"
-                className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-md text-sm font-bold transition-all transform hover:scale-105 shadow-lg shadow-amber-900/20"
-              >
-                Open Account
-              </Link>
+              <OpenAccountButton showTooltipOnHover={true} />
             </div>
           </div>
 
@@ -84,13 +80,12 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            <Link
-              href="/open-account"
-              className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-white px-4 py-3 rounded-md text-base font-bold mt-4"
-              onClick={() => setIsOpen(false)}
-            >
-              Open Account
-            </Link>
+            <div className="mt-4 flex justify-center">
+              <OpenAccountButton
+                className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-white px-4 py-3 rounded-md text-base font-bold"
+                showTooltipOnHover={true}
+              />
+            </div>
           </div>
         </div>
       )}
