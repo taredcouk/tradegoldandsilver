@@ -1,4 +1,5 @@
-import Link from "next/link";
+import OpenAccountButton from "./OpenAccountButton";
+import HowItWorksButton from "./HowItWorksButton";
 
 const Hero = () => {
   return (
@@ -26,29 +27,16 @@ const Hero = () => {
             Secure, professional-grade bullion trading for everyone.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              href="/open-account"
-              className="inline-flex items-center justify-center bg-amber-600 hover:bg-amber-500 text-white px-8 py-4 rounded-lg text-lg font-bold transition-all transform hover:scale-105 shadow-xl shadow-amber-900/30"
-            >
-              Open Account
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 ml-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-
-            <Link
-              href="/trade-guide"
-              className="inline-flex items-center justify-center bg-transparent border-2 border-slate-700 hover:border-slate-500 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all"
-            >
-              How it Works
-            </Link>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <OpenAccountButton
+                className="inline-flex items-center justify-center bg-amber-600 hover:bg-amber-500 text-white px-8 py-4 rounded-lg text-lg font-bold transition-all transform hover:scale-105 shadow-xl shadow-amber-900/30"
+              />
+              <HowItWorksButton />
+            </div>
+            <p className="text-slate-400 text-sm italic">
+              *Referral Ad: Tared Ltd earns a commission.
+            </p>
           </div>
 
           <div className="mt-12 flex items-center gap-6 text-slate-400">
