@@ -21,7 +21,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({
+      $or: [
+        { username: username },
+        { email: username }
+      ]
+    });
 
     if (!user) {
       return NextResponse.json(
