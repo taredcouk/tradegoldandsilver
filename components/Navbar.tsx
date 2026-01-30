@@ -3,6 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import OpenAccountButton from "./OpenAccountButton";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,7 +42,9 @@ const Navbar = () => {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="hover:text-amber-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  className={cn(
+                    "hover:text-amber-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  )}
                 >
                   {link.name}
                 </Link>
