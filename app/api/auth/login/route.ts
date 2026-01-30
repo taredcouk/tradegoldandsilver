@@ -5,9 +5,8 @@ import User from '@/models/User';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'fallback-secret-key-replace-in-prod'
-);
+const secret = process.env.JWT_SECRET;
+const JWT_SECRET = new TextEncoder().encode(secret || 'temporary-development-only-secret');
 
 export async function POST(request: Request) {
   try {
