@@ -82,7 +82,7 @@ const Footer = () => {
 
         <div className="pt-8 border-t border-slate-900 text-center">
           <p className="text-sm">
-            Copyright © {new Date().getFullYear()} Recerved
+            Copyright © {new Date().getFullYear()} designed by <span className="text-white font-medium">Thetork</span>
           </p>
         </div>
       </div>
