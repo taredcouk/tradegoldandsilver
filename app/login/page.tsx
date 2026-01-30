@@ -1,10 +1,49 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { User, Lock, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { User, Lock, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || data.message || "Login failed");
+      }
+
+      // Successful login
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
       {/* Logo */}
@@ -32,7 +71,18 @@ export default function LoginPage() {
           <p className="text-slate-400 text-center text-sm">Please enter your details to sign in.</p>
         </div>
 
-        <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm flex items-center gap-3"
+          >
+            <AlertCircle size={18} />
+            {error}
+          </motion.div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-6">
           {/* Username Field */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-300 ml-1">Username</label>
@@ -42,7 +92,10 @@ export default function LoginPage() {
               </div>
               <input
                 type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
+                required
                 className="block w-full bg-slate-950 border border-slate-800 text-white rounded-xl py-3 pl-11 pr-4 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 transition-all"
               />
             </div>
@@ -62,7 +115,10 @@ export default function LoginPage() {
               </div>
               <input
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                required
                 className="block w-full bg-slate-950 border border-slate-800 text-white rounded-xl py-3 pl-11 pr-4 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 transition-all"
               />
             </div>
@@ -71,20 +127,16 @@ export default function LoginPage() {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-3 px-4 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-amber-600/10 flex items-center justify-center gap-2"
+            disabled={isLoading}
+            className="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-3 px-4 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-amber-600/10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            Sign In <ArrowRight size={18} />
+            {isLoading ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <>Sign In <ArrowRight size={18} /></>
+            )}
           </button>
         </form>
-
-        <div className="mt-8 pt-6 border-t border-slate-800 text-center">
-          <p className="text-slate-400 text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="/open-account" className="text-amber-500 font-semibold hover:text-amber-400 transition-colors">
-              Sign Up
-            </Link>
-          </p>
-        </div>
       </motion.div>
 
       {/* Footer info */}
