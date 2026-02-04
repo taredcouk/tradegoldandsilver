@@ -6,7 +6,10 @@ import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 
 const secret = process.env.JWT_SECRET;
-const JWT_SECRET = new TextEncoder().encode(secret || 'temporary-development-only-secret');
+if (!secret) {
+  throw new Error('JWT_SECRET environment variable is not set');
+}
+const JWT_SECRET = new TextEncoder().encode(secret);
 
 export async function POST(request: Request) {
   try {

@@ -4,9 +4,9 @@ import { jwtVerify } from 'jose';
 
 const secret = process.env.JWT_SECRET;
 if (!secret) {
-  console.warn('JWT_SECRET is not defined in environment variables');
+  throw new Error('JWT_SECRET environment variable is not set');
 }
-const JWT_SECRET = new TextEncoder().encode(secret || 'temporary-development-only-secret');
+const JWT_SECRET = new TextEncoder().encode(secret);
 
 export async function middleware(request: NextRequest) {
   const session = request.cookies.get('session')?.value;
