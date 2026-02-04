@@ -45,10 +45,14 @@ export default function BlogPage() {
       <Navbar />
 
       <Hero
-        title="Gold and Silver Blog"
+        title={
+          <>
+            <span className="text-amber-500">Gold</span> and <span className="text-slate-300">Silver</span> Blog
+          </>
+        }
         description="Stay informed with the latest market insights, investment strategies, and precious metals news."
-        backgroundImage="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2032&auto=format&fit=crop"
-        showButtons={false}
+        backgroundImage="https://images.unsplash.com/photo-1610375461246-83df859d849d?q=80&w=2070&auto=format&fit=crop"
+        showButtons={true}
       />
 
       <section className="py-20">
