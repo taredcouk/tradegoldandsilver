@@ -52,20 +52,34 @@ const Subscribe = () => {
                 Hey! Are you tired of missing out on our updates? Subscribe to our news now and stay in the loop!
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 max-w-lg">
-                <div className="flex-grow relative">
+              <div className="flex flex-col gap-4 max-w-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input
-                    type="email"
-                    placeholder="Email Address"
+                    type="text"
+                    placeholder="First Name"
+                    className="w-full bg-white text-slate-950 px-6 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-950/50 font-medium placeholder:text-slate-400"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Last Name"
                     className="w-full bg-white text-slate-950 px-6 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-950/50 font-medium placeholder:text-slate-400"
                   />
                 </div>
-                <button
-                  className="bg-slate-950 text-amber-500 px-8 py-4 rounded-xl font-bold uppercase tracking-wider hover:bg-slate-900 transition-colors shadow-lg flex items-center justify-center gap-2"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  Submit <Send size={18} />
-                </button>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-grow relative">
+                    <input
+                      type="email"
+                      placeholder="Email Address"
+                      className="w-full bg-white text-slate-950 px-6 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-950/50 font-medium placeholder:text-slate-400"
+                    />
+                  </div>
+                  <button
+                    className="bg-slate-950 text-amber-500 px-8 py-4 rounded-xl font-bold uppercase tracking-wider hover:bg-slate-900 transition-colors shadow-lg flex items-center justify-center gap-2 whitespace-nowrap"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    Submit <Send size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
