@@ -1,12 +1,50 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LayoutDashboard, LogOut, TrendingUp, Settings, Users } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  Briefcase,
+  Settings,
+  Users,
+  FileText,
+  TrendingUp,
+  BarChart3
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [stats, setStats] = useState({
+    visitors: 0,
+    visits: 0,
+    conversion: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/statistics');
+        if (response.ok) {
+          const data = await response.json();
+          setStats({
+            visitors: data.visitors || 0,
+            visits: data.visits || 0,
+            conversion: data.conversion || 0
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -37,11 +75,11 @@ export default function DashboardPage() {
           <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/10 text-amber-500 font-medium">
             <LayoutDashboard size={20} /> Dashboard
           </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-            <TrendingUp size={20} /> Market Data
+          <Link href="/dashboard/blog" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+            <FileText size={20} /> Blog
           </Link>
           <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-            <Users size={20} /> My Portfolio
+            <Briefcase size={20} /> My Portfolio
           </Link>
           <div className="pt-4 text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 mb-2">System</div>
           <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
@@ -74,13 +112,18 @@ export default function DashboardPage() {
             className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
           >
             {[
-              { label: "Total Balance", value: "$45,231.89", color: "amber" },
-              { label: "Active Trades", value: "12", color: "blue" },
-              { label: "Profit (24h)", value: "+$1,240.50", color: "green" }
+              { label: "Visitors", value: loading ? "..." : stats.visitors.toLocaleString(), icon: <Users size={20} className="text-amber-500" /> },
+              { label: "Visits", value: loading ? "..." : stats.visits.toLocaleString(), icon: <TrendingUp size={20} className="text-blue-500" /> },
+              { label: "Conversion", value: loading ? "..." : stats.conversion.toLocaleString(), icon: <BarChart3 size={20} className="text-green-500" /> }
             ].map((stat, i) => (
-              <div key={i} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                <p className="text-slate-400 text-sm mb-1">{stat.label}</p>
-                <p className="text-2xl font-bold">{stat.value}</p>
+              <div key={i} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center justify-between">
+                <div>
+                  <p className="text-slate-400 text-sm mb-1">{stat.label}</p>
+                  <p className="text-2xl font-bold">{stat.value}</p>
+                </div>
+                <div className="p-3 bg-slate-800 rounded-xl">
+                  {stat.icon}
+                </div>
               </div>
             ))}
           </motion.div>
