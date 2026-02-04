@@ -10,6 +10,7 @@
     "seed": "npx tsx scripts/seed-admin.ts"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.19",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.9.0",
     "clsx": "^2.1.1",
