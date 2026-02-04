@@ -3,43 +3,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import Link from "next/link";
+import { dbConnect } from "@/lib/db";
+import Blog, { IBlog } from "@/models/Blog";
 
-const blogPosts = [
-  {
-    id: 1,
-    title: "Why Gold is the Ultimate Hedge Against Inflation",
-    excerpt: "In uncertain economic times, gold has historically maintained its value and purchasing power...",
-    date: "May 15, 2024",
-    image: "https://images.unsplash.com/photo-1589118949245-7d38baf380d6?q=80&w=2070&auto=format&fit=crop",
-    category: "Market Analysis"
-  },
-  {
-    id: 2,
-    title: "Understanding Silver's Industrial Demand",
-    excerpt: "Silver isn't just a precious metal; it's a critical component in electronics and renewable energy...",
-    date: "May 10, 2024",
-    image: "https://images.unsplash.com/photo-1610375461246-83df859d849d?q=80&w=2070&auto=format&fit=crop",
-    category: "Investing"
-  },
-  {
-    id: 3,
-    title: "How to Securely Store Your Precious Metals",
-    excerpt: "Once you've bought your bullion, the next question is how to keep it safe. We explore several options...",
-    date: "May 5, 2024",
-    image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=2070&auto=format&fit=crop",
-    category: "Guide"
-  },
-  {
-    id: 4,
-    title: "Central Banks and Gold Reserves in 2024",
-    excerpt: "Why central banks around the world are increasing their gold holdings at record rates...",
-    date: "April 28, 2024",
-    image: "https://images.unsplash.com/photo-1621504450181-5d356f63d3ee?q=80&w=2070&auto=format&fit=crop",
-    category: "Economics"
-  }
-];
-
-export default function BlogPage() {
+export default async function BlogPage() {
+  await dbConnect();
+  const blogs = await Blog.find({}).sort({ createdAt: -1 });
   return (
     <main className="min-h-screen bg-slate-950">
       <Navbar />
@@ -73,31 +42,37 @@ export default function BlogPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
-            {blogPosts.map((post) => (
-              <article key={post.id} className="group bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-amber-500/50 transition-all">
+            {blogs.map((post: IBlog) => (
+              <article key={post._id.toString()} className="group bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-amber-500/50 transition-all">
                 <div className="relative h-64 w-full">
                   <Image
-                    src={post.image}
+                    src={post.cover}
                     alt={post.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute top-4 left-4">
                     <span className="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                      {post.category}
+                      {post.author}
                     </span>
                   </div>
                 </div>
                 <div className="p-8">
-                  <div className="text-slate-500 text-sm mb-3">{post.date}</div>
+                  <div className="text-slate-500 text-sm mb-3">
+                    {new Date(post.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </div>
                   <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-amber-500 transition-colors">
                     {post.title}
                   </h3>
                   <p className="text-slate-400 mb-6 line-clamp-2">
-                    {post.excerpt}
+                    {post.body}
                   </p>
                   <Link
-                    href={`/blog/${post.id}`}
+                    href={`/blog/${post._id}`}
                     className="inline-flex items-center text-amber-500 font-bold hover:text-amber-400 transition-colors"
                   >
                     Read More
