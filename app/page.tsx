@@ -5,6 +5,7 @@ import Services from "@/components/Services";
 import Roadmap from "@/components/Roadmap";
 import About from "@/components/About";
 import FAQ from "@/components/FAQ";
+import LatestBlogs from "@/components/LatestBlogs";
 import Subscribe from "@/components/Subscribe";
 import Footer from "@/components/Footer";
 
@@ -24,6 +25,7 @@ export default function Home() {
         <About />
         <Roadmap />
         <FAQ />
+        <LatestBlogs />
         <Subscribe />
       </main>
 

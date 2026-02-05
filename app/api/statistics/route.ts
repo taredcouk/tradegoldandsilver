@@ -8,7 +8,7 @@ export async function GET() {
     const stats = await Statistic.find({});
 
     // Transform to a more usable object
-    const statsObject = stats.reduce((acc: any, stat: any) => {
+    const statsObject = stats.reduce((acc: Record<string, number>, stat) => {
       acc[stat.name] = stat.value;
       return acc;
     }, {});
