@@ -33,9 +33,9 @@ export default function ContactPage() {
 
       setStatus("success");
       setFormData({ name: "", email: "", subject: "", message: "" });
-    } catch (error: any) {
+    } catch (error) {
       setStatus("error");
-      setErrorMessage(error.message || "Something went wrong.");
+      setErrorMessage(error instanceof Error ? error.message : "Something went wrong.");
     }
   };
 
@@ -66,7 +66,7 @@ export default function ContactPage() {
             <div>
               <h2 className="text-3xl font-bold text-white mb-8">Get in Touch</h2>
               <p className="text-slate-400 text-lg mb-12 leading-relaxed">
-                Whether you're looking for account assistance, market insights, or technical support,
+                Whether you&apos;re looking for account assistance, market insights, or technical support,
                 our specialists are ready to assist you.
               </p>
 
@@ -123,7 +123,7 @@ export default function ContactPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-4">Message Sent!</h3>
                   <p className="text-slate-400 mb-8">
-                    Thank you for reaching out. We've received your message and will get back to you within 24 hours.
+                    Thank you for reaching out. We&apos;ve received your message and will get back to you within 24 hours.
                   </p>
                   <button
                     onClick={() => setStatus("idle")}

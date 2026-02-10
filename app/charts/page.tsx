@@ -8,8 +8,7 @@ export default function ChartsPage() {
     <main className="min-h-screen bg-[#050B18]">
       <Navbar />
       <Hero
-        title="Market"
-        highlight="Charts"
+        title={<>Market <span className="text-amber-500">Charts</span></>}
         description="Real-time gold and silver price tracking and historical data analysis."
       />
 

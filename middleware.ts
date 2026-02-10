@@ -11,9 +11,15 @@ const JWT_SECRET = new TextEncoder().encode(secret);
 export async function middleware(request: NextRequest) {
   const session = request.cookies.get('session')?.value;
 
-  // Protect /dashboard routes
-  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+  // Protect /dashboard and sensitive API routes
+  const protectedPaths = ['/dashboard', '/api/messages', '/api/statistics'];
+  const isProtected = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path));
+
+  if (isProtected) {
     if (!session) {
+      if (request.nextUrl.pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
@@ -22,6 +28,9 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     } catch (error) {
       console.error('Session verification failed:', error);
+      if (request.nextUrl.pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+      }
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }
@@ -40,5 +49,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/api/messages/:path*', '/api/statistics/:path*', '/login'],
 };
