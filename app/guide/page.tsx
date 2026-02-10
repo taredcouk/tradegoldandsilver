@@ -47,7 +47,7 @@ export default function GuidePage() {
           <div className="max-w-3xl mb-16">
             <h2 className="text-3xl font-bold text-white mb-6">Essential Investor Guides</h2>
             <p className="text-slate-400 text-lg leading-relaxed">
-              Whether you're a first-time buyer or an experienced investor, our expert-crafted guides provide
+              Whether you&apos;re a first-time buyer or an experienced investor, our expert-crafted guides provide
               the knowledge you need to navigate the gold and silver markets with confidence.
             </p>
           </div>

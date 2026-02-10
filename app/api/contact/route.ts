@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       { message: 'Message sent successfully' },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Contact form error:', error);
     return NextResponse.json(
       { error: 'Failed to send message. Please try again later.' },
