@@ -7,15 +7,15 @@ test('verify newsletter subscription form', async ({ page }) => {
   // GO TO PORT 3000
   await page.goto('http://localhost:3000');
 
-  // Wait for some time to allow rendering
-  await page.waitForTimeout(2000);
+  // Wait for the subscribe section heading
+  const subscribeHeading = page.locator('text=TO OUR AWESOME NEWS');
+  await expect(subscribeHeading).toBeVisible({ timeout: 15000 });
 
-  // Wait for the section to be in the DOM
-  const subscribeSection = page.locator('section').filter({ hasText: 'Subscribe' });
-  await expect(subscribeSection.first()).toBeVisible({ timeout: 10000 });
+  // The section is the parent or ancestor
+  const subscribeSection = page.locator('section').filter({ hasText: 'TO OUR AWESOME NEWS' });
 
   // Scroll to it
-  await subscribeSection.first().scrollIntoViewIfNeeded();
+  await subscribeSection.scrollIntoViewIfNeeded();
 
   const firstName = subscribeSection.locator('input[placeholder="First Name"]');
   const lastName = subscribeSection.locator('input[placeholder="Last Name"]');
@@ -47,6 +47,8 @@ test('verify newsletter subscription form', async ({ page }) => {
   await submitBtn.click();
 
   // Wait for success message
+  // In Subscribe.tsx: setMessage(data.message);
+  // Default message in api is "Thank you for subscribing!"
   const successMsg = page.locator('text=Thank you for subscribing!');
   await expect(successMsg).toBeVisible({ timeout: 10000 });
 });
