@@ -3,12 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import OpenAccountButton from "./OpenAccountButton";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from "@/lib/utils";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);

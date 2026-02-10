@@ -4,7 +4,7 @@ test('verify homepage with latest blogs', async ({ page }) => {
   await page.goto('http://localhost:3000');
 
   // Wait for the blog section to be visible
-  const blogSection = page.locator('text=Popular Trading Articles');
+  const blogSection = page.locator('text=Latest Trading News & Analysis');
   await expect(blogSection).toBeVisible();
 
   // Take a screenshot

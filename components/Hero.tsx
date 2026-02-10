@@ -1,11 +1,6 @@
 import OpenAccountButton from "./OpenAccountButton";
 import HowItWorksButton from "./HowItWorksButton";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from "@/lib/utils";
 
 interface HeroProps {
   title?: React.ReactNode;
