@@ -11,35 +11,57 @@ if (!secret) {
 }
 const JWT_SECRET = new TextEncoder().encode(secret);
 
-async function isAdmin() {
+async function getSession() {
   try {
     const cookieStore = await cookies();
     const session = cookieStore.get('session')?.value;
-    if (!session) return false;
+    if (!session) return null;
     const { payload } = await jwtVerify(session, JWT_SECRET);
-    return payload.role === 'admin';
+    return payload;
   } catch {
-    return false;
+    return null;
   }
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!await isAdmin()) {
+  const session = await getSession();
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id } = await params;
+  const isAdmin = session.role === 'admin';
+  const isSelf = session.id === id;
+
+  if (!isAdmin && !isSelf) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   try {
     await dbConnect();
     const { username, email, password, role } = await request.json();
 
     const updateData: { username?: string; email?: string; role?: string; password?: string } = {};
-    if (username) updateData.username = username;
-    if (email) updateData.email = email;
-    if (role) updateData.role = role;
-    if (password) {
-      updateData.password = await bcrypt.hash(password, 10);
+
+    if (isAdmin) {
+      if (username) updateData.username = username;
+      if (email) updateData.email = email;
+      if (role) updateData.role = role;
+      if (password) {
+        updateData.password = await bcrypt.hash(password, 10);
+      }
+    } else if (isSelf) {
+      // Non-admins can ONLY update their password
+      if (password) {
+        updateData.password = await bcrypt.hash(password, 10);
+      } else {
+        return NextResponse.json({ error: 'Only password can be updated' }, { status: 400 });
+      }
+
+      // Prevent other fields from being updated by non-admins
+      if (username || email || role) {
+        return NextResponse.json({ error: 'Unauthorized to update these fields' }, { status: 403 });
+      }
     }
 
     const user = await User.findByIdAndUpdate(id, updateData, { new: true }).select('-password');
@@ -59,7 +81,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!await isAdmin()) {
+  const session = await getSession();
+  if (!session || session.role !== 'admin') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
