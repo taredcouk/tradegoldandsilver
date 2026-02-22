@@ -5,6 +5,8 @@ export interface IBlog extends Document {
   body: string;
   author: string;
   cover: string;
+  status: 'draft' | 'published';
+  authorId: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,6 +17,8 @@ const BlogSchema: Schema = new Schema(
     body: { type: String, required: true },
     author: { type: String, required: true },
     cover: { type: String, required: true },
+    status: { type: String, enum: ['draft', 'published'], default: 'draft' },
+    authorId: { type: Schema.Types.ObjectId, ref: 'User' },
   },
   {
     timestamps: true,

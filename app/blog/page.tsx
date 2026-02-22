@@ -8,7 +8,7 @@ import Blog, { IBlog } from "@/models/Blog";
 
 export default async function BlogPage() {
   await dbConnect();
-  const blogs = await Blog.find({}).sort({ createdAt: -1 });
+  const blogs = await Blog.find({ status: 'published' }).sort({ createdAt: -1 });
   return (
     <main className="min-h-screen bg-slate-950">
       <Navbar />

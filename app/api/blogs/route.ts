@@ -27,18 +27,34 @@ export async function POST(request: Request) {
 
   try {
     await dbConnect();
-    const { title, body, author, cover } = await request.json();
+    const { title, body, author, cover, status, submitForApproval } = await request.json();
 
     if (!title || !body || !author || !cover) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const isAdmin = session.role === 'admin';
+    const blogStatus = isAdmin ? (status || 'published') : 'draft';
+
     const blog = await Blog.create({
       title,
       body,
       author,
-      cover
+      cover,
+      status: blogStatus,
+      authorId: session.id
     });
+
+    if (!isAdmin && submitForApproval) {
+      const BlogRequest = (await import('@/models/BlogRequest')).default;
+      await BlogRequest.create({
+        type: 'create',
+        blogId: blog._id,
+        data: { title, body, author, cover },
+        requesterId: session.id,
+        status: 'pending'
+      });
+    }
 
     return NextResponse.json(blog, { status: 201 });
   } catch (error: unknown) {

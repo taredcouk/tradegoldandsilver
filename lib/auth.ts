@@ -13,7 +13,7 @@ export async function getSession() {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return payload as { id: string; username: string; role: string };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
