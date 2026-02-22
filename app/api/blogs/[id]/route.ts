@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import Blog from '@/models/Blog';
+import User from '@/models/User';
 import { getSession } from '@/lib/auth';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -13,7 +14,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     await dbConnect();
-    const { title, body, author, cover, submitForApproval } = await request.json();
+    const user = await User.findById(session.id);
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username;
+
+    const { title, body, cover, submitForApproval } = await request.json();
 
     const isAdmin = session.role === 'admin';
     const blog = await Blog.findById(id);
@@ -31,7 +38,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       const updateData: { title?: string; body?: string; author?: string; cover?: string } = {};
       if (title) updateData.title = title;
       if (body) updateData.body = body;
-      if (author) updateData.author = author;
+      updateData.author = fullName;
       if (cover) updateData.cover = cover;
 
       const updatedBlog = await Blog.findByIdAndUpdate(id, updateData, { new: true });
@@ -43,7 +50,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const updateData: { title?: string; body?: string; author?: string; cover?: string } = {};
         if (title) updateData.title = title;
         if (body) updateData.body = body;
-        if (author) updateData.author = author;
+        updateData.author = fullName;
         if (cover) updateData.cover = cover;
 
         const updatedBlog = await Blog.findByIdAndUpdate(id, updateData, { new: true });
@@ -55,7 +62,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             { blogId: id, status: 'pending' },
             {
               type: 'create',
-              data: { title: title || blog.title, body: body || blog.body, author: author || blog.author, cover: cover || blog.cover },
+              data: { title: title || blog.title, body: body || blog.body, author: fullName, cover: cover || blog.cover },
               requesterId: session.id,
             },
             { upsert: true, new: true }
@@ -70,7 +77,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             { blogId: id, status: 'pending' },
             {
               type: 'update',
-              data: { title: title || blog.title, body: body || blog.body, author: author || blog.author, cover: cover || blog.cover },
+              data: { title: title || blog.title, body: body || blog.body, author: fullName, cover: cover || blog.cover },
               requesterId: session.id,
             },
             { upsert: true, new: true }

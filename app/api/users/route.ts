@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
   try {
     await dbConnect();
-    const { username, email, password, role } = await request.json();
+    const { username, email, password, role, firstName, lastName } = await request.json();
 
     if (!username || !email || !password) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -37,7 +37,9 @@ export async function POST(request: Request) {
       username,
       email,
       password: hashedPassword,
-      role: role || 'user'
+      role: role || 'user',
+      firstName: firstName || "",
+      lastName: lastName || ""
     });
 
     const userObj = user.toObject();
