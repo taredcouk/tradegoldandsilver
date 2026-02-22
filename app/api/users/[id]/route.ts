@@ -2,26 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { dbConnect } from '@/lib/db';
 import User from '@/models/User';
-import { jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
-
-const secret = process.env.JWT_SECRET;
-if (!secret) {
-  throw new Error('JWT_SECRET environment variable is not set');
-}
-const JWT_SECRET = new TextEncoder().encode(secret);
-
-async function getSession() {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get('session')?.value;
-    if (!session) return null;
-    const { payload } = await jwtVerify(session, JWT_SECRET);
-    return payload;
-  } catch {
-    return null;
-  }
-}
+import { getSession } from '@/lib/auth';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();

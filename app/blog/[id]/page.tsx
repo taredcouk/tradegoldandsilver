@@ -91,9 +91,10 @@ export default async function BlogDetailsPage({ params }: BlogDetailsProps) {
             </div>
 
             <div className="prose prose-invert prose-amber max-w-none">
-              <div className="text-lg leading-relaxed text-slate-300 space-y-6 whitespace-pre-wrap">
-                {post.body}
-              </div>
+              <div
+                className="text-lg leading-relaxed text-slate-300 space-y-6"
+                dangerouslySetInnerHTML={{ __html: post.body }}
+              />
             </div>
 
             <div className="mt-16 pt-8 border-t border-slate-800 flex flex-wrap items-center justify-between gap-6">

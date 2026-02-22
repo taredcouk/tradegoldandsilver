@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import Message from '@/models/Message';
+import { isAdmin } from '@/lib/auth';
 
 export async function GET() {
+  if (!await isAdmin()) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     await dbConnect();
 

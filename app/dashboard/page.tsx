@@ -20,9 +20,20 @@ import {
   X,
   Loader2,
   User as UserIcon,
-  CheckCircle2
+  CheckCircle2,
+  FileText,
+  PlusCircle,
+  Image as ImageIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from 'next/dynamic';
+
+// Dynamically import ReactQuill for client-side rendering
+const ReactQuill = dynamic(() => import('react-quill-new'), {
+  ssr: false,
+  loading: () => <div className="h-64 w-full bg-slate-900 animate-pulse rounded-xl border border-slate-800" />
+});
+import 'react-quill-new/dist/quill.snow.css';
 
 interface Message {
   _id: string;
@@ -41,9 +52,18 @@ interface User {
   createdAt: string;
 }
 
+interface Blog {
+  _id: string;
+  title: string;
+  body: string;
+  author: string;
+  cover: string;
+  createdAt: string;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"overview" | "messages" | "users" | "settings">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "messages" | "users" | "settings" | "blogs">("overview");
   const [stats, setStats] = useState({
     visitors: 0,
     visits: 0,
@@ -52,22 +72,34 @@ export default function DashboardPage() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [blogsLoading, setBlogsLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
 
   // Modal states
-  const [showModal, setShowModal] = useState<"add" | "edit" | "reset" | "delete" | null>(null);
+  const [showModal, setShowModal] = useState<"add" | "edit" | "reset" | "delete" | "addBlog" | "editBlog" | "deleteBlog" | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     role: "user" as "user" | "admin"
   });
+
+  const [blogFormData, setBlogFormData] = useState({
+    title: "",
+    body: "",
+    author: "",
+    cover: ""
+  });
+
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -79,6 +111,8 @@ export default function DashboardPage() {
         if (response.ok) {
           const data = await response.json();
           setCurrentUser(data);
+          // Set default author for blogs
+          setBlogFormData(prev => ({ ...prev, author: data.username }));
         } else {
           router.push('/login');
         }
@@ -117,6 +151,8 @@ export default function DashboardPage() {
       fetchMessages();
     } else if (activeTab === "users") {
       fetchUsers();
+    } else if (activeTab === "blogs") {
+      fetchBlogs();
     }
   }, [activeTab]);
 
@@ -150,6 +186,21 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchBlogs = async () => {
+    setBlogsLoading(true);
+    try {
+      const response = await fetch('/api/blogs');
+      if (response.ok) {
+        const data = await response.json();
+        setBlogs(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch blogs:', error);
+    } finally {
+      setBlogsLoading(false);
+    }
+  };
+
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
@@ -164,25 +215,47 @@ export default function DashboardPage() {
     }
   };
 
-  const handleOpenModal = (type: "add" | "edit" | "reset" | "delete", user?: User) => {
+  const handleOpenModal = (type: "add" | "edit" | "reset" | "delete" | "addBlog" | "editBlog" | "deleteBlog", data?: User | Blog) => {
     setShowModal(type);
     setError(null);
-    if (user) {
-      setSelectedUser(user);
-      setFormData({
-        username: user.username,
-        email: user.email,
-        password: "",
-        role: user.role
-      });
-    } else {
-      setSelectedUser(null);
-      setFormData({
-        username: "",
-        email: "",
-        password: "",
-        role: "user"
-      });
+    setSuccess(null);
+
+    if (type === 'add' || type === 'edit' || type === 'reset' || type === 'delete') {
+      if (data) {
+        setSelectedUser(data);
+        setFormData({
+          username: data.username,
+          email: data.email,
+          password: "",
+          role: data.role
+        });
+      } else {
+        setSelectedUser(null);
+        setFormData({
+          username: "",
+          email: "",
+          password: "",
+          role: "user"
+        });
+      }
+    } else if (type === 'addBlog' || type === 'editBlog' || type === 'deleteBlog') {
+      if (data) {
+        setSelectedBlog(data);
+        setBlogFormData({
+          title: data.title,
+          body: data.body,
+          author: data.author,
+          cover: data.cover
+        });
+      } else {
+        setSelectedBlog(null);
+        setBlogFormData({
+          title: "",
+          body: "",
+          author: currentUser?.username || "",
+          cover: ""
+        });
+      }
     }
   };
 
@@ -216,13 +289,54 @@ export default function DashboardPage() {
         body: body ? JSON.stringify(body) : undefined
       });
 
-      const data = await response.json();
+      const resData = await response.json();
 
       if (response.ok) {
         setShowModal(null);
         fetchUsers();
       } else {
-        setError(data.error || 'Something went wrong');
+        setError(resData.error || 'Something went wrong');
+      }
+    } catch {
+      setError('Failed to perform action');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleBlogAction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setActionLoading(true);
+    setError(null);
+
+    try {
+      let url = '/api/blogs';
+      let method = 'POST';
+      let body: { title?: string; body?: string; author?: string; cover?: string } | null = { ...blogFormData };
+
+      if (showModal === 'editBlog' || showModal === 'deleteBlog') {
+        url = `/api/blogs/${selectedBlog?._id}`;
+        if (showModal === 'editBlog') {
+          method = 'PUT';
+        } else if (showModal === 'deleteBlog') {
+          method = 'DELETE';
+          body = null;
+        }
+      }
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined
+      });
+
+      const resData = await response.json();
+
+      if (response.ok) {
+        setShowModal(null);
+        fetchBlogs();
+      } else {
+        setError(resData.error || 'Something went wrong');
       }
     } catch {
       setError('Failed to perform action');
@@ -261,6 +375,16 @@ export default function DashboardPage() {
     }
   };
 
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['link', 'image', 'code-block'],
+      ['clean']
+    ],
+  };
+
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -289,6 +413,16 @@ export default function DashboardPage() {
           >
             <LayoutDashboard size={20} /> Dashboard
           </button>
+
+          <button
+            onClick={() => setActiveTab("blogs")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              activeTab === "blogs" ? "bg-amber-500/10 text-amber-500 font-medium" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            <FileText size={20} /> Blogs
+          </button>
+
           {currentUser?.role === 'admin' && (
             <>
               <button
@@ -336,7 +470,8 @@ export default function DashboardPage() {
           <h1 className="text-lg font-semibold">
             {activeTab === "overview" ? "Dashboard Overview" :
              activeTab === "messages" && currentUser?.role === 'admin' ? "Contact Messages" :
-             activeTab === "users" && currentUser?.role === 'admin' ? "Users Management" : "Account Settings"}
+             activeTab === "users" && currentUser?.role === 'admin' ? "Users Management" :
+             activeTab === "blogs" ? "Blogs Management" : "Account Settings"}
           </h1>
           <div className="flex items-center gap-4">
             <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-slate-950 font-bold">
@@ -530,6 +665,80 @@ export default function DashboardPage() {
                   </div>
                 )}
               </motion.div>
+            ) : activeTab === "blogs" ? (
+              <motion.div
+                key="blogs"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold">Blogs</h2>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={fetchBlogs}
+                      className="text-sm text-slate-400 hover:text-white font-medium"
+                    >
+                      Refresh
+                    </button>
+                    <button
+                      onClick={() => handleOpenModal("addBlog")}
+                      className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                    >
+                      <PlusCircle size={18} /> Add Blog
+                    </button>
+                  </div>
+                </div>
+
+                {blogsLoading ? (
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 flex justify-center">
+                    <Loader2 size={32} className="text-amber-500 animate-spin" />
+                  </div>
+                ) : blogs.length === 0 ? (
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
+                    <FileText size={48} className="text-slate-700 mx-auto mb-4" />
+                    <p className="text-slate-400">No blogs found.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {blogs.map((blog) => (
+                      <div key={blog._id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col hover:border-slate-700 transition-all">
+                        <div className="relative h-40 w-full bg-slate-800">
+                          {blog.cover ? (
+                            <img src={blog.cover} alt={blog.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-600">
+                              <ImageIcon size={40} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-5 flex-grow">
+                          <h3 className="font-bold text-lg mb-2 line-clamp-1">{blog.title}</h3>
+                          <p className="text-slate-400 text-sm mb-4 line-clamp-2" dangerouslySetInnerHTML={{ __html: blog.body.substring(0, 100) + '...' }} />
+                          <div className="flex justify-between items-center mt-auto">
+                            <span className="text-xs text-slate-500">{new Date(blog.createdAt).toLocaleDateString()}</span>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleOpenModal("editBlog", blog)}
+                                className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-all"
+                              >
+                                <Pencil size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleOpenModal("deleteBlog", blog)}
+                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
             ) : (
               <motion.div
                 key="settings"
@@ -625,118 +834,250 @@ export default function DashboardPage() {
       {/* Modals */}
       <AnimatePresence>
         {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+              className={`bg-slate-900 border border-slate-800 rounded-2xl w-full ${showModal.toString().includes('Blog') ? 'max-w-4xl' : 'max-w-md'} overflow-hidden shadow-2xl my-8`}
             >
               <div className="p-6 border-b border-slate-800 flex justify-between items-center">
                 <h3 className="text-xl font-bold">
                   {showModal === 'add' ? 'Add New User' :
                    showModal === 'edit' ? 'Edit User' :
-                   showModal === 'reset' ? 'Reset Password' : 'Delete User'}
+                   showModal === 'reset' ? 'Reset Password' :
+                   showModal === 'delete' ? 'Delete User' :
+                   showModal === 'addBlog' ? 'Add New Blog' :
+                   showModal === 'editBlog' ? 'Edit Blog' : 'Delete Blog'}
                 </h3>
                 <button onClick={() => setShowModal(null)} className="text-slate-400 hover:text-white">
                   <X size={24} />
                 </button>
               </div>
 
-              <form onSubmit={handleUserAction} className="p-6 space-y-4">
-                {showModal === 'delete' ? (
-                  <div className="space-y-4">
-                    <p className="text-slate-300">
-                      Are you sure you want to delete user <span className="text-white font-bold">{selectedUser?.username}</span>? This action cannot be undone.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    {(showModal === 'add' || showModal === 'edit') && (
-                      <>
+              {showModal.toString().includes('Blog') ? (
+                <form onSubmit={handleBlogAction} className="p-6 space-y-4">
+                  {showModal === 'deleteBlog' ? (
+                    <div className="space-y-4">
+                      <p className="text-slate-300">
+                        Are you sure you want to delete blog <span className="text-white font-bold">{selectedBlog?.title}</span>? This action cannot be undone.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-400">Username</label>
+                          <label className="text-sm font-medium text-slate-400">Title</label>
                           <input
                             type="text"
                             required
-                            value={formData.username}
-                            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                            value={blogFormData.title}
+                            onChange={(e) => setBlogFormData({ ...blogFormData, title: e.target.value })}
                             className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-400">Email Address</label>
+                          <label className="text-sm font-medium text-slate-400">Author</label>
                           <input
-                            type="email"
+                            type="text"
                             required
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            value={blogFormData.author}
+                            onChange={(e) => setBlogFormData({ ...blogFormData, author: e.target.value })}
                             className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-400">Role</label>
-                          <select
-                            value={formData.role}
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value as "user" | "admin" })}
+                          <label className="text-sm font-medium text-slate-400">Cover Image URL</label>
+                          <input
+                            type="text"
+                            required
+                            value={blogFormData.cover}
+                            onChange={(e) => setBlogFormData({ ...blogFormData, cover: e.target.value })}
                             className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
-                          >
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                          </select>
+                          />
+                          {blogFormData.cover && (
+                            <div className="mt-2 h-32 w-full rounded-xl overflow-hidden border border-slate-800">
+                              <img src={blogFormData.cover} alt="Preview" className="w-full h-full object-cover" />
+                            </div>
+                          )}
                         </div>
-                      </>
-                    )}
-
-                    {(showModal === 'add' || showModal === 'reset') && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-400">
-                          {showModal === 'reset' ? 'New Password' : 'Password'}
-                        </label>
-                        <input
-                          type="password"
-                          required
-                          value={formData.password}
-                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
-                        />
                       </div>
-                    )}
-                  </>
-                )}
+                      <div className="space-y-2 flex flex-col">
+                        <label className="text-sm font-medium text-slate-400">Content</label>
+                        <div className="flex-grow bg-slate-950 rounded-xl border border-slate-800 overflow-hidden min-h-[300px]">
+                          <ReactQuill
+                            theme="snow"
+                            value={blogFormData.body}
+                            onChange={(content) => setBlogFormData({ ...blogFormData, body: content })}
+                            modules={quillModules}
+                            className="h-full quill-editor"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                {error && (
-                  <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-sm">
-                    {error}
+                  {error && (
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="flex gap-4 pt-4 justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(null)}
+                      className="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={actionLoading}
+                      className={`px-6 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                        showModal === 'deleteBlog' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                      }`}
+                    >
+                      {actionLoading && <Loader2 size={18} className="animate-spin" />}
+                      {showModal === 'addBlog' ? 'Create Blog' :
+                       showModal === 'editBlog' ? 'Update Blog' : 'Delete Blog'}
+                    </button>
                   </div>
-                )}
+                </form>
+              ) : (
+                <form onSubmit={handleUserAction} className="p-6 space-y-4">
+                  {showModal === 'delete' ? (
+                    <div className="space-y-4">
+                      <p className="text-slate-300">
+                        Are you sure you want to delete user <span className="text-white font-bold">{selectedUser?.username}</span>? This action cannot be undone.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {(showModal === 'add' || showModal === 'edit') && (
+                        <>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-400">Username</label>
+                            <input
+                              type="text"
+                              required
+                              value={formData.username}
+                              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-400">Email Address</label>
+                            <input
+                              type="email"
+                              required
+                              value={formData.email}
+                              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-400">Role</label>
+                            <select
+                              value={formData.role}
+                              onChange={(e) => setFormData({ ...formData, role: e.target.value as "user" | "admin" })}
+                              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
+                            >
+                              <option value="user">User</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          </div>
+                        </>
+                      )}
 
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(null)}
-                    className="flex-1 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={actionLoading}
-                    className={`flex-1 px-4 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
-                      showModal === 'delete' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
-                    }`}
-                  >
-                    {actionLoading && <Loader2 size={18} className="animate-spin" />}
-                    {showModal === 'add' ? 'Create User' :
-                     showModal === 'edit' ? 'Update User' :
-                     showModal === 'reset' ? 'Reset Password' : 'Delete User'}
-                  </button>
-                </div>
-              </form>
+                      {(showModal === 'add' || showModal === 'reset') && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-slate-400">
+                            {showModal === 'reset' ? 'New Password' : 'Password'}
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {error && (
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(null)}
+                      className="flex-1 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={actionLoading}
+                      className={`flex-1 px-4 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                        showModal === 'delete' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                      }`}
+                    >
+                      {actionLoading && <Loader2 size={18} className="animate-spin" />}
+                      {showModal === 'add' ? 'Create User' :
+                       showModal === 'edit' ? 'Update User' :
+                       showModal === 'reset' ? 'Reset Password' : 'Delete User'}
+                    </button>
+                  </div>
+                </form>
+              )}
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+      <style jsx global>{`
+        .quill-editor .ql-container {
+          height: calc(100% - 42px);
+          min-height: 250px;
+          background: #020617;
+          border-color: #1e293b !important;
+          color: #e2e8f0;
+          font-family: inherit;
+        }
+        .quill-editor .ql-toolbar {
+          background: #0f172a;
+          border-color: #1e293b !important;
+        }
+        .quill-editor .ql-toolbar button {
+          color: #94a3b8;
+        }
+        .quill-editor .ql-toolbar button:hover {
+          color: #fbbf24;
+        }
+        .quill-editor .ql-toolbar .ql-stroke {
+          stroke: #94a3b8;
+        }
+        .quill-editor .ql-toolbar .ql-fill {
+          fill: #94a3b8;
+        }
+        .quill-editor .ql-toolbar button:hover .ql-stroke {
+          stroke: #fbbf24;
+        }
+        .quill-editor .ql-toolbar button:hover .ql-fill {
+          fill: #fbbf24;
+        }
+        .quill-editor .ql-toolbar .ql-picker {
+          color: #94a3b8;
+        }
+        .quill-editor .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+          stroke: #fbbf24;
+        }
+      `}</style>
     </div>
   );
 }
