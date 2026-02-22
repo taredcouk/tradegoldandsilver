@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { dbConnect } from "@/lib/db";
 import Blog, { IBlog } from "@/models/Blog";
+import { stripHtml } from "@/lib/text-utils";
 
 export default async function BlogPage() {
   await dbConnect();
@@ -69,7 +70,7 @@ export default async function BlogPage() {
                     {post.title}
                   </h3>
                   <p className="text-slate-400 mb-6 line-clamp-2">
-                    {post.body.replace(/<[^>]*>?/gm, '')}
+                    {stripHtml(post.body)}
                   </p>
                   <Link
                     href={`/blog/${post._id}`}

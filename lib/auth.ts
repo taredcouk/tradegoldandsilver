@@ -2,7 +2,10 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 
 const secret = process.env.JWT_SECRET;
-const JWT_SECRET = new TextEncoder().encode(secret || 'fallback-secret-for-dev-only');
+if (!secret && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET environment variable is not set');
+}
+const JWT_SECRET = new TextEncoder().encode(secret || 'dev-secret-only-not-for-production');
 
 export async function getSession() {
   const cookieStore = await cookies();
