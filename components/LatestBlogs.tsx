@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { dbConnect } from "@/lib/db";
 import Blog, { IBlog } from "@/models/Blog";
+import { stripHtml } from "@/lib/text-utils";
 
 export default async function LatestBlogs() {
   await dbConnect();
@@ -40,7 +41,7 @@ export default async function LatestBlogs() {
                 {blog.title}.
               </h3>
               <p className="text-slate-400 mb-6 line-clamp-2 text-sm leading-relaxed">
-                {blog.body}
+                {stripHtml(blog.body)}
               </p>
               <Link
                 href={`/blog/${blog._id}`}

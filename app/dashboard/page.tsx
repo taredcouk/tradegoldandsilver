@@ -370,7 +370,7 @@ export default function DashboardPage() {
     try {
       let url = '/api/users';
       let method = 'POST';
-      let body: { username?: string; email?: string; role?: string; password?: string } | null = { ...formData };
+      let body: any = { ...formData };
 
       if (showModal === 'edit' || showModal === 'reset' || showModal === 'delete') {
         url = `/api/users/${selectedUser?._id}`;
@@ -1271,8 +1271,8 @@ export default function DashboardPage() {
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-slate-400">Author</label>
                           <div className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-2 text-slate-500 italic">
-                            {currentUser?.firstName && currentUser?.lastName
-                              ? `${currentUser.firstName} ${currentUser.lastName}`
+                            {(currentUser?.firstName || currentUser?.lastName)
+                              ? `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim()
                               : currentUser?.username}
                           </div>
                         </div>

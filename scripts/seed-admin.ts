@@ -18,6 +18,8 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, default: 'user' },
+  firstName: { type: String, default: '' },
+  lastName: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -41,6 +43,8 @@ async function seed() {
         email: adminEmail,
         password: hashedPassword,
         role: 'admin',
+        firstName: 'Malek',
+        lastName: 'Albawaih',
       });
       console.log('Admin user updated successfully');
     } else {
@@ -50,6 +54,8 @@ async function seed() {
         email: adminEmail,
         password: hashedPassword,
         role: 'admin',
+        firstName: 'Malek',
+        lastName: 'Albawaih',
       });
       console.log('Admin user created successfully');
     }
