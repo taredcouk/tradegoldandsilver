@@ -69,7 +69,7 @@ export default async function BlogPage() {
                     {post.title}
                   </h3>
                   <p className="text-slate-400 mb-6 line-clamp-2">
-                    {post.body}
+                    {post.body.replace(/<[^>]*>?/gm, '')}
                   </p>
                   <Link
                     href={`/blog/${post._id}`}
