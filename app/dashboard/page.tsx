@@ -6,35 +6,66 @@ import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   LogOut,
-  Briefcase,
   Settings,
   Users,
   TrendingUp,
   BarChart3,
   Mail,
-  Clock
+  Clock,
+  Pencil,
+  Trash2,
+  Key,
+  Shield,
+  UserPlus,
+  X,
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+interface Message {
+  _id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+}
+
+interface User {
+  _id: string;
+  username: string;
+  email: string;
+  role: "user" | "admin";
+  createdAt: string;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"overview" | "messages">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "messages" | "users">("overview");
   const [stats, setStats] = useState({
     visitors: 0,
     visits: 0,
     conversion: 0
   });
-  interface Message {
-    _id: string;
-    name: string;
-    email: string;
-    subject: string;
-    message: string;
-    createdAt: string;
-  }
+
   const [messages, setMessages] = useState<Message[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  // Modal states
+  const [showModal, setShowModal] = useState<"add" | "edit" | "reset" | "delete" | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    role: "user" as "user" | "admin"
+  });
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -61,6 +92,8 @@ export default function DashboardPage() {
   useEffect(() => {
     if (activeTab === "messages") {
       fetchMessages();
+    } else if (activeTab === "users") {
+      fetchUsers();
     }
   }, [activeTab]);
 
@@ -79,6 +112,21 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const response = await fetch('/api/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
@@ -90,6 +138,73 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Logout failed:', error);
+    }
+  };
+
+  const handleOpenModal = (type: "add" | "edit" | "reset" | "delete", user?: User) => {
+    setShowModal(type);
+    setError(null);
+    if (user) {
+      setSelectedUser(user);
+      setFormData({
+        username: user.username,
+        email: user.email,
+        password: "",
+        role: user.role
+      });
+    } else {
+      setSelectedUser(null);
+      setFormData({
+        username: "",
+        email: "",
+        password: "",
+        role: "user"
+      });
+    }
+  };
+
+  const handleUserAction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setActionLoading(true);
+    setError(null);
+
+    try {
+      let url = '/api/users';
+      let method = 'POST';
+      let body: { username?: string; email?: string; role?: string; password?: string } | null = { ...formData };
+
+      if (showModal === 'edit' || showModal === 'reset' || showModal === 'delete') {
+        url = `/api/users/${selectedUser?._id}`;
+        if (showModal === 'edit') {
+          method = 'PUT';
+          delete body.password;
+        } else if (showModal === 'reset') {
+          method = 'PUT';
+          body = { password: formData.password };
+        } else if (showModal === 'delete') {
+          method = 'DELETE';
+          body = null;
+        }
+      }
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setShowModal(null);
+        fetchUsers();
+      } else {
+        setError(data.error || 'Something went wrong');
+      }
+    } catch {
+      setError('Failed to perform action');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -121,9 +236,15 @@ export default function DashboardPage() {
           >
             <Mail size={20} /> Messages
           </button>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-            <Briefcase size={20} /> My Portfolio
-          </Link>
+          <button
+            onClick={() => setActiveTab("users")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              activeTab === "users" ? "bg-amber-500/10 text-amber-500 font-medium" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            <Users size={20} /> Users
+          </button>
+
           <div className="pt-4 text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 mb-2">System</div>
           <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
             <Settings size={20} /> Settings
@@ -143,7 +264,8 @@ export default function DashboardPage() {
       <main className="flex-grow">
         <header className="h-16 border-b border-slate-800 bg-slate-950/50 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8">
           <h1 className="text-lg font-semibold">
-            {activeTab === "overview" ? "Dashboard Overview" : "Contact Messages"}
+            {activeTab === "overview" ? "Dashboard Overview" :
+             activeTab === "messages" ? "Contact Messages" : "Users Management"}
           </h1>
           <div className="flex items-center gap-4">
             <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-slate-950 font-bold">M</div>
@@ -189,7 +311,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </motion.div>
-            ) : (
+            ) : activeTab === "messages" ? (
               <motion.div
                 key="messages"
                 initial={{ opacity: 0, y: 10 }}
@@ -243,10 +365,218 @@ export default function DashboardPage() {
                   </div>
                 )}
               </motion.div>
+            ) : (
+              <motion.div
+                key="users"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold">Users</h2>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={fetchUsers}
+                      className="text-sm text-slate-400 hover:text-white font-medium"
+                    >
+                      Refresh
+                    </button>
+                    <button
+                      onClick={() => handleOpenModal("add")}
+                      className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                    >
+                      <UserPlus size={18} /> Add User
+                    </button>
+                  </div>
+                </div>
+
+                {usersLoading ? (
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 flex justify-center">
+                    <Loader2 size={32} className="text-amber-500 animate-spin" />
+                  </div>
+                ) : (
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-800 bg-slate-800/50">
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400">Username</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400">Email</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400">Role</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400">Created At</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800">
+                          {users.map((user) => (
+                            <tr key={user._id} className="hover:bg-slate-800/30 transition-colors">
+                              <td className="px-6 py-4 font-medium">{user.username}</td>
+                              <td className="px-6 py-4 text-slate-400">{user.email}</td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  user.role === 'admin' ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500'
+                                }`}>
+                                  <Shield size={12} />
+                                  {user.role}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-slate-500 text-sm">
+                                {new Date(user.createdAt).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    onClick={() => handleOpenModal("reset", user)}
+                                    className="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition-all"
+                                    title="Reset Password"
+                                  >
+                                    <Key size={18} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleOpenModal("edit", user)}
+                                    className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-all"
+                                    title="Edit User"
+                                  >
+                                    <Pencil size={18} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleOpenModal("delete", user)}
+                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                    title="Delete User"
+                                  >
+                                    <Trash2 size={18} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Modals */}
+      <AnimatePresence>
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                <h3 className="text-xl font-bold">
+                  {showModal === 'add' ? 'Add New User' :
+                   showModal === 'edit' ? 'Edit User' :
+                   showModal === 'reset' ? 'Reset Password' : 'Delete User'}
+                </h3>
+                <button onClick={() => setShowModal(null)} className="text-slate-400 hover:text-white">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleUserAction} className="p-6 space-y-4">
+                {showModal === 'delete' ? (
+                  <div className="space-y-4">
+                    <p className="text-slate-300">
+                      Are you sure you want to delete user <span className="text-white font-bold">{selectedUser?.username}</span>? This action cannot be undone.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {(showModal === 'add' || showModal === 'edit') && (
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-slate-400">Username</label>
+                          <input
+                            type="text"
+                            required
+                            value={formData.username}
+                            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-slate-400">Email Address</label>
+                          <input
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-slate-400">Role</label>
+                          <select
+                            value={formData.role}
+                            onChange={(e) => setFormData({ ...formData, role: e.target.value as "user" | "admin" })}
+                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
+                          >
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </div>
+                      </>
+                    )}
+
+                    {(showModal === 'add' || showModal === 'reset') && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-400">
+                          {showModal === 'reset' ? 'New Password' : 'Password'}
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {error && (
+                  <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <div className="flex gap-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(null)}
+                    className="flex-1 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={actionLoading}
+                    className={`flex-1 px-4 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                      showModal === 'delete' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                    }`}
+                  >
+                    {actionLoading && <Loader2 size={18} className="animate-spin" />}
+                    {showModal === 'add' ? 'Create User' :
+                     showModal === 'edit' ? 'Update User' :
+                     showModal === 'reset' ? 'Reset Password' : 'Delete User'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
