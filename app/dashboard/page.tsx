@@ -335,8 +335,8 @@ export default function DashboardPage() {
         <header className="h-16 border-b border-slate-800 bg-slate-950/50 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8">
           <h1 className="text-lg font-semibold">
             {activeTab === "overview" ? "Dashboard Overview" :
-             activeTab === "messages" ? "Contact Messages" :
-             activeTab === "users" ? "Users Management" : "Account Settings"}
+             activeTab === "messages" && currentUser?.role === 'admin' ? "Contact Messages" :
+             activeTab === "users" && currentUser?.role === 'admin' ? "Users Management" : "Account Settings"}
           </h1>
           <div className="flex items-center gap-4">
             <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-slate-950 font-bold">
@@ -384,7 +384,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </motion.div>
-            ) : activeTab === "messages" ? (
+            ) : activeTab === "messages" && currentUser?.role === 'admin' ? (
               <motion.div
                 key="messages"
                 initial={{ opacity: 0, y: 10 }}
@@ -438,7 +438,7 @@ export default function DashboardPage() {
                   </div>
                 )}
               </motion.div>
-            ) : activeTab === "users" ? (
+            ) : (activeTab === "users" && currentUser?.role === 'admin') ? (
               <motion.div
                 key="users"
                 initial={{ opacity: 0, y: 10 }}
