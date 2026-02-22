@@ -596,21 +596,22 @@ export default function DashboardPage() {
               >
                 <Users size={20} /> Users
               </button>
-              <button
-                onClick={() => setActiveTab("requests")}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                  activeTab === "requests" ? "bg-amber-500/10 text-amber-500 font-medium" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                }`}
-              >
-                <Clock size={20} /> Requests
-                {requests.filter(r => r.status === 'pending').length > 0 && (
-                  <span className="ml-auto bg-amber-500 text-slate-950 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                    {requests.filter(r => r.status === 'pending').length}
-                  </span>
-                )}
-              </button>
             </>
           )}
+
+          <button
+            onClick={() => setActiveTab("requests")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              activeTab === "requests" ? "bg-amber-500/10 text-amber-500 font-medium" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
+            <Clock size={20} /> Requests
+            {requests.filter(r => (currentUser?.role === 'admin' ? r.status === 'pending' : r.status === 'rejected')).length > 0 && (
+              <span className={`ml-auto ${currentUser?.role === 'admin' ? 'bg-amber-500' : 'bg-red-500'} text-slate-950 text-[10px] font-bold px-1.5 py-0.5 rounded-full`}>
+                {requests.filter(r => (currentUser?.role === 'admin' ? r.status === 'pending' : r.status === 'rejected')).length}
+              </span>
+            )}
+          </button>
 
           <div className="pt-4 text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 mb-2">System</div>
           <button
@@ -872,9 +873,17 @@ export default function DashboardPage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {blogs.map((blog) => {
-                      const hasPendingRequest = requests.some(r => r.blogId?._id === blog._id && r.status === 'pending');
+                      // Find the latest request for this blog
+                      const blogRequests = requests.filter(r => r.blogId?._id === blog._id);
+                      const latestRequest = blogRequests.length > 0 ? blogRequests.reduce((prev, current) =>
+                        (new Date(prev.createdAt) > new Date(current.createdAt)) ? prev : current
+                      ) : null;
+
+                      const hasPendingRequest = latestRequest?.status === 'pending';
+                      const rejectedRequest = latestRequest?.status === 'rejected' ? latestRequest : null;
+
                       return (
-                      <div key={blog._id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col hover:border-slate-700 transition-all">
+                      <div key={blog._id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col hover:border-slate-700 transition-all relative">
                         <div className="relative h-40 w-full bg-slate-800">
                           {blog.cover ? (
                             <img src={blog.cover} alt={blog.title} className="w-full h-full object-cover" />
@@ -894,10 +903,21 @@ export default function DashboardPage() {
                                 <Clock size={10} /> Pending
                               </span>
                             )}
+                            {rejectedRequest && (
+                              <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                                <X size={10} /> Rejected
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="p-5 flex-grow">
                           <h3 className="font-bold text-lg mb-2 line-clamp-1">{blog.title}</h3>
+                          {rejectedRequest && rejectedRequest.adminNotes && (
+                            <div className="mb-4 p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-[10px] text-red-400">
+                              <span className="font-bold uppercase mr-1">Admin Note:</span>
+                              {rejectedRequest.adminNotes}
+                            </div>
+                          )}
                           <p className="text-slate-400 text-sm mb-4 line-clamp-2" dangerouslySetInnerHTML={{ __html: blog.body.substring(0, 100) + '...' }} />
                           <div className="flex justify-between items-center mt-auto">
                             <span className="text-xs text-slate-500">{new Date(blog.createdAt).toLocaleDateString()}</span>
@@ -960,6 +980,7 @@ export default function DashboardPage() {
                             {currentUser?.role === 'admin' && <th className="px-6 py-4 text-sm font-semibold text-slate-400">Requester</th>}
                             <th className="px-6 py-4 text-sm font-semibold text-slate-400">Status</th>
                             <th className="px-6 py-4 text-sm font-semibold text-slate-400">Date</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400">Notes</th>
                             <th className="px-6 py-4 text-sm font-semibold text-slate-400 text-right">Actions</th>
                           </tr>
                         </thead>
@@ -987,11 +1008,14 @@ export default function DashboardPage() {
                                   req.status === 'pending' ? 'bg-amber-500/10 text-amber-500' :
                                   req.status === 'approved' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
                                 }`}>
-                                  {req.status}
+                                  {req.status === 'rejected' ? 'Rejected' : req.status}
                                 </span>
                               </td>
-                              <td className="px-6 py-4 text-slate-500 text-sm">
+                              <td className="px-6 py-4 text-slate-500 text-sm whitespace-nowrap">
                                 {new Date(req.createdAt).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 text-slate-400 text-xs italic max-w-[200px] truncate">
+                                {req.adminNotes || '-'}
                               </td>
                               <td className="px-6 py-4 text-right">
                                 {currentUser?.role === 'admin' && req.status === 'pending' ? (
@@ -1003,7 +1027,12 @@ export default function DashboardPage() {
                                   </button>
                                 ) : (
                                   req.adminNotes && (
-                                    <span className="text-xs text-slate-500 italic" title={req.adminNotes}>Notes avail.</span>
+                                    <button
+                                      className="text-amber-500 hover:text-amber-400 text-xs font-bold"
+                                      onClick={() => alert(`Admin Notes: ${req.adminNotes}`)}
+                                    >
+                                      View Note
+                                    </button>
                                   )
                                 )}
                               </td>
@@ -1198,6 +1227,28 @@ export default function DashboardPage() {
 
               {showModal.toString().includes('Blog') ? (
                 <form onSubmit={handleBlogAction} className="p-6 space-y-4">
+                  {showModal === 'editBlog' && (
+                    <>
+                      {(() => {
+                        const blogRequests = requests.filter(r => r.blogId?._id === selectedBlog?._id);
+                        const latestRequest = blogRequests.length > 0 ? blogRequests.reduce((prev, current) =>
+                          (new Date(prev.createdAt) > new Date(current.createdAt)) ? prev : current
+                        ) : null;
+
+                        if (latestRequest?.status === 'rejected' && latestRequest.adminNotes) {
+                          return (
+                            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                              <h4 className="text-red-500 font-bold text-sm mb-1 uppercase tracking-wider flex items-center gap-2">
+                                <X size={16} /> Previous Rejection Note
+                              </h4>
+                              <p className="text-red-400 text-sm italic">{latestRequest.adminNotes}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </>
+                  )}
                   {showModal === 'deleteBlog' ? (
                     <div className="space-y-4">
                       <p className="text-slate-300">
