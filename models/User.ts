@@ -21,6 +21,17 @@ const UserSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user",
   },
+  title: {
+    type: String,
+    default: "Precious Metals Analyst",
+  },
+  socialLinks: {
+    facebook: { type: String, default: "" },
+    linkedin: { type: String, default: "" },
+    twitter: { type: String, default: "" },
+    pinterest: { type: String, default: "" },
+    website: { type: String, default: "" },
+  },
   createdAt: {
     type: Date,
     default: Date.now,
