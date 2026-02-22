@@ -18,7 +18,9 @@ import {
   Shield,
   UserPlus,
   X,
-  Loader2
+  Loader2,
+  User as UserIcon,
+  CheckCircle2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -41,7 +43,7 @@ interface User {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"overview" | "messages" | "users">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "messages" | "users" | "settings">("overview");
   const [stats, setStats] = useState({
     visitors: 0,
     visits: 0,
@@ -50,10 +52,12 @@ export default function DashboardPage() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   // Modal states
   const [showModal, setShowModal] = useState<"add" | "edit" | "reset" | "delete" | null>(null);
@@ -66,8 +70,26 @@ export default function DashboardPage() {
   });
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUser(data);
+        } else {
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+        router.push('/login');
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
     const fetchStats = async () => {
       try {
         const response = await fetch('/api/statistics');
@@ -86,8 +108,9 @@ export default function DashboardPage() {
       }
     };
 
+    fetchProfile();
     fetchStats();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (activeTab === "messages") {
@@ -208,6 +231,44 @@ export default function DashboardPage() {
     }
   };
 
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    setActionLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch(`/api/users/${currentUser._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: formData.password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess('Password updated successfully');
+        setFormData({ ...formData, password: "" });
+      } else {
+        setError(data.error || 'Failed to update password');
+      }
+    } catch {
+      setError('An error occurred');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="text-amber-500 animate-spin" size={48} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-white flex">
       {/* Sidebar */}
@@ -228,27 +289,36 @@ export default function DashboardPage() {
           >
             <LayoutDashboard size={20} /> Dashboard
           </button>
-          <button
-            onClick={() => setActiveTab("messages")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-              activeTab === "messages" ? "bg-amber-500/10 text-amber-500 font-medium" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            }`}
-          >
-            <Mail size={20} /> Messages
-          </button>
-          <button
-            onClick={() => setActiveTab("users")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-              activeTab === "users" ? "bg-amber-500/10 text-amber-500 font-medium" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            }`}
-          >
-            <Users size={20} /> Users
-          </button>
+          {currentUser?.role === 'admin' && (
+            <>
+              <button
+                onClick={() => setActiveTab("messages")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                  activeTab === "messages" ? "bg-amber-500/10 text-amber-500 font-medium" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                <Mail size={20} /> Messages
+              </button>
+              <button
+                onClick={() => setActiveTab("users")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                  activeTab === "users" ? "bg-amber-500/10 text-amber-500 font-medium" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                <Users size={20} /> Users
+              </button>
+            </>
+          )}
 
           <div className="pt-4 text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 mb-2">System</div>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+          <button
+            onClick={() => setActiveTab("settings")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              activeTab === "settings" ? "bg-amber-500/10 text-amber-500 font-medium" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+            }`}
+          >
             <Settings size={20} /> Settings
-          </Link>
+          </button>
         </nav>
         <div className="p-4 border-t border-slate-800">
           <button
@@ -265,10 +335,13 @@ export default function DashboardPage() {
         <header className="h-16 border-b border-slate-800 bg-slate-950/50 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8">
           <h1 className="text-lg font-semibold">
             {activeTab === "overview" ? "Dashboard Overview" :
-             activeTab === "messages" ? "Contact Messages" : "Users Management"}
+             activeTab === "messages" ? "Contact Messages" :
+             activeTab === "users" ? "Users Management" : "Account Settings"}
           </h1>
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-slate-950 font-bold">M</div>
+            <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-slate-950 font-bold">
+              {currentUser?.username.charAt(0).toUpperCase()}
+            </div>
           </div>
         </header>
 
@@ -304,7 +377,7 @@ export default function DashboardPage() {
                   <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
                     <LayoutDashboard size={32} className="text-slate-600" />
                   </div>
-                  <h2 className="text-xl font-bold mb-2 text-white">Welcome to your Dashboard</h2>
+                  <h2 className="text-xl font-bold mb-2 text-white">Welcome, {currentUser?.username}!</h2>
                   <p className="text-slate-400 max-w-md mx-auto">
                     Your trading dashboard is ready. We&apos;re currently processing live market data for Gold and Silver.
                     Check back soon for advanced analytics.
@@ -365,7 +438,7 @@ export default function DashboardPage() {
                   </div>
                 )}
               </motion.div>
-            ) : (
+            ) : activeTab === "users" ? (
               <motion.div
                 key="users"
                 initial={{ opacity: 0, y: 10 }}
@@ -456,6 +529,93 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="settings"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="max-w-2xl mx-auto">
+                  <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+                    <Settings className="text-amber-500" /> Account Settings
+                  </h2>
+
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden mb-8">
+                    <div className="p-6 border-b border-slate-800 bg-slate-800/30">
+                      <h3 className="font-bold flex items-center gap-2">
+                        <UserIcon size={18} className="text-amber-500" /> Profile Information
+                      </h3>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Username</label>
+                          <div className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-300">
+                            {currentUser?.username}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Email Address</label>
+                          <div className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-300">
+                            {currentUser?.email}
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Role</label>
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-sm font-medium">
+                          <Shield size={14} />
+                          {currentUser?.role}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div className="p-6 border-b border-slate-800 bg-slate-800/30">
+                      <h3 className="font-bold flex items-center gap-2">
+                        <Key size={18} className="text-amber-500" /> Change Password
+                      </h3>
+                    </div>
+                    <form onSubmit={handlePasswordUpdate} className="p-6 space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-400">New Password</label>
+                        <input
+                          type="password"
+                          required
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          placeholder="Enter your new password"
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all placeholder:text-slate-700"
+                        />
+                      </div>
+
+                      {error && (
+                        <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-sm">
+                          {error}
+                        </div>
+                      )}
+
+                      {success && (
+                        <div className="bg-green-500/10 border border-green-500/20 text-green-500 p-3 rounded-xl text-sm flex items-center gap-2">
+                          <CheckCircle2 size={16} /> {success}
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={actionLoading}
+                        className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                      >
+                        {actionLoading && <Loader2 size={18} className="animate-spin" />}
+                        Update Password
+                      </button>
+                    </form>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
