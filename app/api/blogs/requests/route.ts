@@ -15,7 +15,7 @@ export async function GET() {
 
     let requests;
     if (admin) {
-      requests = await BlogRequest.find({ status: 'pending' })
+      requests = await BlogRequest.find({})
         .populate('blogId')
         .populate('requesterId', 'username email')
         .sort({ createdAt: -1 });
