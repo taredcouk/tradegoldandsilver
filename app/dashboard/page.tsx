@@ -58,12 +58,34 @@ interface Blog {
   body: string;
   author: string;
   cover: string;
+  status?: 'draft' | 'published';
+  authorId?: string;
+  createdAt: string;
+}
+
+interface BlogRequest {
+  _id: string;
+  type: 'create' | 'update' | 'delete';
+  blogId?: Blog;
+  data?: {
+    title: string;
+    body: string;
+    author: string;
+    cover: string;
+  };
+  requesterId: {
+    _id: string;
+    username: string;
+    email: string;
+  };
+  status: 'pending' | 'approved' | 'rejected';
+  adminNotes?: string;
   createdAt: string;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"overview" | "messages" | "users" | "settings" | "blogs">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "messages" | "users" | "settings" | "blogs" | "requests">("overview");
   const [stats, setStats] = useState({
     visitors: 0,
     visits: 0,
@@ -73,18 +95,21 @@ export default function DashboardPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [requests, setRequests] = useState<BlogRequest[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(false);
   const [blogsLoading, setBlogsLoading] = useState(false);
+  const [requestsLoading, setRequestsLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
 
   // Modal states
-  const [showModal, setShowModal] = useState<"add" | "edit" | "reset" | "delete" | "addBlog" | "editBlog" | "deleteBlog" | null>(null);
+  const [showModal, setShowModal] = useState<"add" | "edit" | "reset" | "delete" | "addBlog" | "editBlog" | "deleteBlog" | "reviewRequest" | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<BlogRequest | null>(null);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -103,6 +128,7 @@ export default function DashboardPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [adminNotes, setAdminNotes] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -153,6 +179,9 @@ export default function DashboardPage() {
       fetchUsers();
     } else if (activeTab === "blogs") {
       fetchBlogs();
+      fetchRequests();
+    } else if (activeTab === "requests") {
+      fetchRequests();
     }
   }, [activeTab]);
 
@@ -201,6 +230,21 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchRequests = async () => {
+    setRequestsLoading(true);
+    try {
+      const response = await fetch('/api/blogs/requests');
+      if (response.ok) {
+        const data = await response.json();
+        setRequests(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch requests:', error);
+    } finally {
+      setRequestsLoading(false);
+    }
+  };
+
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
@@ -215,19 +259,21 @@ export default function DashboardPage() {
     }
   };
 
-  const handleOpenModal = (type: "add" | "edit" | "reset" | "delete" | "addBlog" | "editBlog" | "deleteBlog", data?: User | Blog) => {
+  const handleOpenModal = (type: "add" | "edit" | "reset" | "delete" | "addBlog" | "editBlog" | "deleteBlog" | "reviewRequest", data?: User | Blog | BlogRequest) => {
     setShowModal(type);
     setError(null);
     setSuccess(null);
+    setAdminNotes("");
 
     if (type === 'add' || type === 'edit' || type === 'reset' || type === 'delete') {
       if (data) {
-        setSelectedUser(data);
+        const userData = data as User;
+        setSelectedUser(userData);
         setFormData({
-          username: data.username,
-          email: data.email,
+          username: userData.username,
+          email: userData.email,
           password: "",
-          role: data.role
+          role: userData.role
         });
       } else {
         setSelectedUser(null);
@@ -240,12 +286,13 @@ export default function DashboardPage() {
       }
     } else if (type === 'addBlog' || type === 'editBlog' || type === 'deleteBlog') {
       if (data) {
-        setSelectedBlog(data);
+        const blogData = data as Blog;
+        setSelectedBlog(blogData);
         setBlogFormData({
-          title: data.title,
-          body: data.body,
-          author: data.author,
-          cover: data.cover
+          title: blogData.title,
+          body: blogData.body,
+          author: blogData.author,
+          cover: blogData.cover
         });
       } else {
         setSelectedBlog(null);
@@ -256,6 +303,8 @@ export default function DashboardPage() {
           cover: ""
         });
       }
+    } else if (type === 'reviewRequest') {
+      setSelectedRequest(data as BlogRequest);
     }
   };
 
@@ -304,15 +353,15 @@ export default function DashboardPage() {
     }
   };
 
-  const handleBlogAction = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleBlogAction = async (e: React.FormEvent | null, submitForApproval: boolean = false) => {
+    if (e) e.preventDefault();
     setActionLoading(true);
     setError(null);
 
     try {
       let url = '/api/blogs';
       let method = 'POST';
-      let body: { title?: string; body?: string; author?: string; cover?: string } | null = { ...blogFormData };
+      let body: { title: string; body: string; author: string; cover: string; submitForApproval: boolean } | null = { ...blogFormData, submitForApproval };
 
       if (showModal === 'editBlog' || showModal === 'deleteBlog') {
         url = `/api/blogs/${selectedBlog?._id}`;
@@ -334,6 +383,34 @@ export default function DashboardPage() {
 
       if (response.ok) {
         setShowModal(null);
+        fetchBlogs();
+        fetchRequests();
+      } else {
+        setError(resData.error || 'Something went wrong');
+      }
+    } catch {
+      setError('Failed to perform action');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRequestAction = async (action: 'approve' | 'reject') => {
+    setActionLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/blogs/requests/${selectedRequest?._id}/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: action === 'reject' ? JSON.stringify({ adminNotes }) : undefined
+      });
+
+      const resData = await response.json();
+
+      if (response.ok) {
+        setShowModal(null);
+        fetchRequests();
         fetchBlogs();
       } else {
         setError(resData.error || 'Something went wrong');
@@ -441,6 +518,19 @@ export default function DashboardPage() {
               >
                 <Users size={20} /> Users
               </button>
+              <button
+                onClick={() => setActiveTab("requests")}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                  activeTab === "requests" ? "bg-amber-500/10 text-amber-500 font-medium" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                <Clock size={20} /> Requests
+                {requests.filter(r => r.status === 'pending').length > 0 && (
+                  <span className="ml-auto bg-amber-500 text-slate-950 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    {requests.filter(r => r.status === 'pending').length}
+                  </span>
+                )}
+              </button>
             </>
           )}
 
@@ -471,7 +561,8 @@ export default function DashboardPage() {
             {activeTab === "overview" ? "Dashboard Overview" :
              activeTab === "messages" && currentUser?.role === 'admin' ? "Contact Messages" :
              activeTab === "users" && currentUser?.role === 'admin' ? "Users Management" :
-             activeTab === "blogs" ? "Blogs Management" : "Account Settings"}
+             activeTab === "blogs" ? "Blogs Management" :
+             activeTab === "requests" ? "Moderation Requests" : "Account Settings"}
           </h1>
           <div className="flex items-center gap-4">
             <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-slate-950 font-bold">
@@ -702,7 +793,9 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {blogs.map((blog) => (
+                    {blogs.map((blog) => {
+                      const hasPendingRequest = requests.some(r => r.blogId?._id === blog._id && r.status === 'pending');
+                      return (
                       <div key={blog._id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col hover:border-slate-700 transition-all">
                         <div className="relative h-40 w-full bg-slate-800">
                           {blog.cover ? (
@@ -712,6 +805,18 @@ export default function DashboardPage() {
                               <ImageIcon size={40} />
                             </div>
                           )}
+                          <div className="absolute top-2 right-2 flex gap-2">
+                            {blog.status === 'draft' ? (
+                              <span className="bg-slate-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Draft</span>
+                            ) : (
+                              <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Published</span>
+                            )}
+                            {hasPendingRequest && (
+                              <span className="bg-amber-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                                <Clock size={10} /> Pending
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="p-5 flex-grow">
                           <h3 className="font-bold text-lg mb-2 line-clamp-1">{blog.title}</h3>
@@ -735,7 +840,100 @@ export default function DashboardPage() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    );})}
+                  </div>
+                )}
+              </motion.div>
+            ) : activeTab === "requests" ? (
+              <motion.div
+                key="requests"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold">{currentUser?.role === 'admin' ? "Moderation Queue" : "My Requests"}</h2>
+                  <button
+                    onClick={fetchRequests}
+                    className="text-sm text-amber-500 hover:text-amber-400 font-medium"
+                  >
+                    Refresh
+                  </button>
+                </div>
+
+                {requestsLoading ? (
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 flex justify-center">
+                    <Loader2 size={32} className="text-amber-500 animate-spin" />
+                  </div>
+                ) : requests.length === 0 ? (
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
+                    <Clock size={48} className="text-slate-700 mx-auto mb-4" />
+                    <p className="text-slate-400">No pending requests.</p>
+                  </div>
+                ) : (
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-800 bg-slate-800/50">
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400">Type</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400">Blog</th>
+                            {currentUser?.role === 'admin' && <th className="px-6 py-4 text-sm font-semibold text-slate-400">Requester</th>}
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400">Status</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400">Date</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-400 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800">
+                          {requests.map((req) => (
+                            <tr key={req._id} className="hover:bg-slate-800/30 transition-colors">
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                  req.type === 'create' ? 'bg-green-500/10 text-green-500' :
+                                  req.type === 'update' ? 'bg-blue-500/10 text-blue-500' : 'bg-red-500/10 text-red-500'
+                                }`}>
+                                  {req.type}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 font-medium">
+                                {req.type === 'create' ? req.data?.title : req.blogId?.title || 'Unknown Blog'}
+                              </td>
+                              {currentUser?.role === 'admin' && (
+                                <td className="px-6 py-4 text-slate-400">
+                                  {req.requesterId.username}
+                                </td>
+                              )}
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  req.status === 'pending' ? 'bg-amber-500/10 text-amber-500' :
+                                  req.status === 'approved' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                                }`}>
+                                  {req.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-slate-500 text-sm">
+                                {new Date(req.createdAt).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                {currentUser?.role === 'admin' && req.status === 'pending' ? (
+                                  <button
+                                    onClick={() => handleOpenModal("reviewRequest", req)}
+                                    className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-3 py-1 rounded-lg text-xs font-bold transition-all"
+                                  >
+                                    Review
+                                  </button>
+                                ) : (
+                                  req.adminNotes && (
+                                    <span className="text-xs text-slate-500 italic" title={req.adminNotes}>Notes avail.</span>
+                                  )
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </motion.div>
@@ -848,7 +1046,8 @@ export default function DashboardPage() {
                    showModal === 'reset' ? 'Reset Password' :
                    showModal === 'delete' ? 'Delete User' :
                    showModal === 'addBlog' ? 'Add New Blog' :
-                   showModal === 'editBlog' ? 'Edit Blog' : 'Delete Blog'}
+                   showModal === 'editBlog' ? 'Edit Blog' :
+                   showModal === 'reviewRequest' ? 'Review Request' : 'Delete Blog'}
                 </h3>
                 <button onClick={() => setShowModal(null)} className="text-slate-400 hover:text-white">
                   <X size={24} />
@@ -923,7 +1122,7 @@ export default function DashboardPage() {
                     </div>
                   )}
 
-                  <div className="flex gap-4 pt-4 justify-end">
+                  <div className="flex gap-4 pt-4 justify-end flex-wrap">
                     <button
                       type="button"
                       onClick={() => setShowModal(null)}
@@ -931,19 +1130,115 @@ export default function DashboardPage() {
                     >
                       Cancel
                     </button>
-                    <button
-                      type="submit"
-                      disabled={actionLoading}
-                      className={`px-6 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
-                        showModal === 'deleteBlog' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
-                      }`}
-                    >
-                      {actionLoading && <Loader2 size={18} className="animate-spin" />}
-                      {showModal === 'addBlog' ? 'Create Blog' :
-                       showModal === 'editBlog' ? 'Update Blog' : 'Delete Blog'}
-                    </button>
+                    {showModal === 'deleteBlog' ? (
+                      <button
+                        type="submit"
+                        disabled={actionLoading}
+                        className="px-6 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        {actionLoading && <Loader2 size={18} className="animate-spin" />}
+                        {currentUser?.role === 'admin' ? 'Delete Immediately' : 'Request Deletion'}
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => handleBlogAction(e, false)}
+                          disabled={actionLoading}
+                          className="px-6 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white"
+                        >
+                          {actionLoading && <Loader2 size={18} className="animate-spin" />}
+                          Save as Draft
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleBlogAction(e, true)}
+                          disabled={actionLoading}
+                          className="px-6 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-slate-950"
+                        >
+                          {actionLoading && <Loader2 size={18} className="animate-spin" />}
+                          {currentUser?.role === 'admin' ? 'Save & Publish' : 'Submit for Approval'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </form>
+              ) : showModal === 'reviewRequest' ? (
+                <div className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Current Version */}
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Current Version</h4>
+                      {selectedRequest?.type === 'create' ? (
+                        <div className="p-4 bg-slate-950/50 rounded-xl border border-slate-800 text-slate-500 italic">
+                          New Blog (No current version)
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                          <p className="font-bold text-white">{selectedRequest?.blogId?.title}</p>
+                          <div className="text-xs text-slate-400 max-h-40 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedRequest?.blogId?.body || '' }} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Proposed Version */}
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-bold text-amber-500 uppercase tracking-wider">Proposed Changes</h4>
+                      {selectedRequest?.type === 'delete' ? (
+                        <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20 text-red-500 font-bold">
+                          DELETION REQUEST
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-slate-950 rounded-xl border border-amber-500/30 space-y-3 shadow-lg shadow-amber-500/5">
+                          <p className="font-bold text-white">{selectedRequest?.data?.title}</p>
+                          <div className="text-xs text-slate-300 max-h-40 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedRequest?.data?.body || '' }} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-4">
+                    <label className="text-sm font-medium text-slate-400">Admin Notes (for rejection)</label>
+                    <textarea
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                      placeholder="Explain why this request is being rejected..."
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all h-20 text-sm"
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="flex gap-4 pt-4 border-t border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(null)}
+                      className="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <div className="flex-grow"></div>
+                    <button
+                      onClick={() => handleRequestAction('reject')}
+                      disabled={actionLoading}
+                      className="px-6 py-2 rounded-xl font-bold transition-all bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={() => handleRequestAction('approve')}
+                      disabled={actionLoading}
+                      className="px-6 py-2 rounded-xl font-bold transition-all bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                    >
+                      {actionLoading && <Loader2 size={18} className="animate-spin" />}
+                      Approve & Publish
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <form onSubmit={handleUserAction} className="p-6 space-y-4">
                   {showModal === 'delete' ? (

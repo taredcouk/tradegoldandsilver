@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   const session = request.cookies.get('session')?.value;
 
   // Protect /dashboard and sensitive API routes
-  const protectedPaths = ['/dashboard', '/api/messages', '/api/statistics', '/api/users', '/api/blogs'];
+  const protectedPaths = ['/dashboard', '/api/messages', '/api/statistics'];
   const isProtected = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path));
 
   if (isProtected) {
@@ -49,5 +49,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/api/messages/:path*', '/api/statistics/:path*', '/api/users/:path*', '/api/blogs/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/api/messages/:path*', '/api/statistics/:path*', '/login'],
 };

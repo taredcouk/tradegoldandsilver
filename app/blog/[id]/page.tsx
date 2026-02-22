@@ -18,7 +18,7 @@ export default async function BlogDetailsPage({ params }: BlogDetailsProps) {
 
   let post;
   try {
-    post = await Blog.findById(id);
+    post = await Blog.findOne({ _id: id, status: 'published' });
   } catch (error) {
     console.error("Error fetching blog post:", error);
     return notFound();
