@@ -49,6 +49,14 @@ interface User {
   username: string;
   email: string;
   role: "user" | "admin";
+  title?: string;
+  socialLinks?: {
+    facebook: string;
+    linkedin: string;
+    twitter: string;
+    pinterest: string;
+    website: string;
+  };
   createdAt: string;
 }
 
@@ -115,7 +123,15 @@ export default function DashboardPage() {
     username: "",
     email: "",
     password: "",
-    role: "user" as "user" | "admin"
+    role: "user" as "user" | "admin",
+    title: "",
+    socialLinks: {
+      facebook: "",
+      linkedin: "",
+      twitter: "",
+      pinterest: "",
+      website: ""
+    }
   });
 
   const [blogFormData, setBlogFormData] = useState({
@@ -139,6 +155,18 @@ export default function DashboardPage() {
           setCurrentUser(data);
           // Set default author for blogs
           setBlogFormData(prev => ({ ...prev, author: data.username }));
+          // Populate settings form
+          setFormData(prev => ({
+            ...prev,
+            title: data.title || "Precious Metals Analyst",
+            socialLinks: {
+              facebook: data.socialLinks?.facebook || "",
+              linkedin: data.socialLinks?.linkedin || "",
+              twitter: data.socialLinks?.twitter || "",
+              pinterest: data.socialLinks?.pinterest || "",
+              website: data.socialLinks?.website || ""
+            }
+          }));
         } else {
           router.push('/login');
         }
@@ -273,7 +301,15 @@ export default function DashboardPage() {
           username: userData.username,
           email: userData.email,
           password: "",
-          role: userData.role
+          role: userData.role,
+          title: userData.title || "Precious Metals Analyst",
+          socialLinks: {
+            facebook: userData.socialLinks?.facebook || "",
+            linkedin: userData.socialLinks?.linkedin || "",
+            twitter: userData.socialLinks?.twitter || "",
+            pinterest: userData.socialLinks?.pinterest || "",
+            website: userData.socialLinks?.website || ""
+          }
         });
       } else {
         setSelectedUser(null);
@@ -281,7 +317,15 @@ export default function DashboardPage() {
           username: "",
           email: "",
           password: "",
-          role: "user"
+          role: "user",
+          title: "Precious Metals Analyst",
+          socialLinks: {
+            facebook: "",
+            linkedin: "",
+            twitter: "",
+            pinterest: "",
+            website: ""
+          }
         });
       }
     } else if (type === 'addBlog' || type === 'editBlog' || type === 'deleteBlog') {
@@ -422,7 +466,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handlePasswordUpdate = async (e: React.FormEvent) => {
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
 
@@ -431,19 +475,39 @@ export default function DashboardPage() {
     setSuccess(null);
 
     try {
+      const updatePayload: {
+        title: string;
+        socialLinks: {
+          facebook: string;
+          linkedin: string;
+          twitter: string;
+          pinterest: string;
+          website: string;
+        };
+        password?: string
+      } = {
+        title: formData.title,
+        socialLinks: formData.socialLinks
+      };
+
+      if (formData.password) {
+        updatePayload.password = formData.password;
+      }
+
       const response = await fetch(`/api/users/${currentUser._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: formData.password })
+        body: JSON.stringify(updatePayload)
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess('Password updated successfully');
+        setSuccess('Profile updated successfully');
         setFormData({ ...formData, password: "" });
+        setCurrentUser(data);
       } else {
-        setError(data.error || 'Failed to update password');
+        setError(data.error || 'Failed to update profile');
       }
     } catch {
       setError('An error occurred');
@@ -950,78 +1014,122 @@ export default function DashboardPage() {
                     <Settings className="text-amber-500" /> Account Settings
                   </h2>
 
-                  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden mb-8">
-                    <div className="p-6 border-b border-slate-800 bg-slate-800/30">
-                      <h3 className="font-bold flex items-center gap-2">
-                        <UserIcon size={18} className="text-amber-500" /> Profile Information
-                      </h3>
-                    </div>
-                    <div className="p-6 space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Username</label>
-                          <div className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-300">
-                            {currentUser?.username}
+                  <form onSubmit={handleProfileUpdate} className="space-y-8">
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                      <div className="p-6 border-b border-slate-800 bg-slate-800/30">
+                        <h3 className="font-bold flex items-center gap-2">
+                          <UserIcon size={18} className="text-amber-500" /> Public Profile
+                        </h3>
+                      </div>
+                      <div className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Professional Title</label>
+                            <input
+                              type="text"
+                              value={formData.title}
+                              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                              placeholder="e.g. Expert Precious Metals Analyst"
+                              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all text-slate-300"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Personal Website</label>
+                            <input
+                              type="url"
+                              value={formData.socialLinks.website}
+                              onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, website: e.target.value } })}
+                              placeholder="https://yourwebsite.com"
+                              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all text-slate-300"
+                            />
                           </div>
                         </div>
-                        <div>
-                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Email Address</label>
-                          <div className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-300">
-                            {currentUser?.email}
+
+                        <div className="space-y-4">
+                          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Social Media Links</label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="text-[10px] text-slate-500 uppercase font-bold">Facebook</label>
+                              <input
+                                type="url"
+                                value={formData.socialLinks.facebook}
+                                onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, facebook: e.target.value } })}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all text-slate-300 text-sm"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] text-slate-500 uppercase font-bold">LinkedIn</label>
+                              <input
+                                type="url"
+                                value={formData.socialLinks.linkedin}
+                                onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, linkedin: e.target.value } })}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all text-slate-300 text-sm"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] text-slate-500 uppercase font-bold">X (Twitter)</label>
+                              <input
+                                type="url"
+                                value={formData.socialLinks.twitter}
+                                onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, twitter: e.target.value } })}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all text-slate-300 text-sm"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] text-slate-500 uppercase font-bold">Pinterest</label>
+                              <input
+                                type="url"
+                                value={formData.socialLinks.pinterest}
+                                onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, pinterest: e.target.value } })}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all text-slate-300 text-sm"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div>
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Role</label>
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-sm font-medium">
-                          <Shield size={14} />
-                          {currentUser?.role}
+                    </div>
+
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                      <div className="p-6 border-b border-slate-800 bg-slate-800/30">
+                        <h3 className="font-bold flex items-center gap-2">
+                          <Key size={18} className="text-amber-500" /> Security
+                        </h3>
+                      </div>
+                      <div className="p-6 space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-slate-400">Update Password</label>
+                          <input
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            placeholder="Leave blank to keep current password"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all placeholder:text-slate-700 text-slate-300"
+                          />
                         </div>
+
+                        {error && (
+                          <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-sm">
+                            {error}
+                          </div>
+                        )}
+
+                        {success && (
+                          <div className="bg-green-500/10 border border-green-500/20 text-green-500 p-3 rounded-xl text-sm flex items-center gap-2">
+                            <CheckCircle2 size={16} /> {success}
+                          </div>
+                        )}
+
+                        <button
+                          type="submit"
+                          disabled={actionLoading}
+                          className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                        >
+                          {actionLoading && <Loader2 size={18} className="animate-spin" />}
+                          Save Profile Changes
+                        </button>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-                    <div className="p-6 border-b border-slate-800 bg-slate-800/30">
-                      <h3 className="font-bold flex items-center gap-2">
-                        <Key size={18} className="text-amber-500" /> Change Password
-                      </h3>
-                    </div>
-                    <form onSubmit={handlePasswordUpdate} className="p-6 space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-400">New Password</label>
-                        <input
-                          type="password"
-                          required
-                          value={formData.password}
-                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                          placeholder="Enter your new password"
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all placeholder:text-slate-700"
-                        />
-                      </div>
-
-                      {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-sm">
-                          {error}
-                        </div>
-                      )}
-
-                      {success && (
-                        <div className="bg-green-500/10 border border-green-500/20 text-green-500 p-3 rounded-xl text-sm flex items-center gap-2">
-                          <CheckCircle2 size={16} /> {success}
-                        </div>
-                      )}
-
-                      <button
-                        type="submit"
-                        disabled={actionLoading}
-                        className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-                      >
-                        {actionLoading && <Loader2 size={18} className="animate-spin" />}
-                        Update Password
-                      </button>
-                    </form>
-                  </div>
+                  </form>
                 </div>
               </motion.div>
             )}

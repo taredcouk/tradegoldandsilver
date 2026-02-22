@@ -20,9 +20,22 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     await dbConnect();
-    const { username, email, password, role } = await request.json();
+    const { username, email, password, role, title, socialLinks } = await request.json();
 
-    const updateData: { username?: string; email?: string; role?: string; password?: string } = {};
+    const updateData: {
+      username?: string;
+      email?: string;
+      role?: string;
+      password?: string;
+      title?: string;
+      socialLinks?: {
+        facebook?: string;
+        linkedin?: string;
+        twitter?: string;
+        pinterest?: string;
+        website?: string;
+      }
+    } = {};
 
     if (isAdmin) {
       if (username) updateData.username = username;
@@ -31,17 +44,24 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       if (password) {
         updateData.password = await bcrypt.hash(password, 10);
       }
+      if (title) updateData.title = title;
+      if (socialLinks) updateData.socialLinks = socialLinks;
     } else if (isSelf) {
-      // Non-admins can ONLY update their password
+      // Users can update their password, title, and social links
       if (password) {
         updateData.password = await bcrypt.hash(password, 10);
-      } else {
-        return NextResponse.json({ error: 'Only password can be updated' }, { status: 400 });
       }
 
-      // Prevent other fields from being updated by non-admins
+      if (title) updateData.title = title;
+      if (socialLinks) updateData.socialLinks = socialLinks;
+
+      // Prevent sensitive fields from being updated by non-admins
       if (username || email || role) {
         return NextResponse.json({ error: 'Unauthorized to update these fields' }, { status: 403 });
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
       }
     }
 

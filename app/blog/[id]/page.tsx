@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { dbConnect } from "@/lib/db";
 import Blog from "@/models/Blog";
+import "@/models/User"; // Ensure model is registered for populate
 import { notFound } from "next/navigation";
-import { Facebook, Linkedin } from "lucide-react";
+import { Facebook, Linkedin, Twitter, Globe } from "lucide-react";
 
 interface BlogDetailsProps {
   params: Promise<{ id: string }>;
@@ -18,7 +19,7 @@ export default async function BlogDetailsPage({ params }: BlogDetailsProps) {
 
   let post;
   try {
-    post = await Blog.findOne({ _id: id, status: 'published' });
+    post = await Blog.findOne({ _id: id, status: 'published' }).populate('authorId');
   } catch (error) {
     console.error("Error fetching blog post:", error);
     return notFound();
@@ -99,24 +100,50 @@ export default async function BlogDetailsPage({ params }: BlogDetailsProps) {
 
             <div className="mt-16 pt-8 border-t border-slate-800 flex flex-wrap items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold text-xl">
+                <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold text-xl uppercase">
                   {post.author.charAt(0)}
                 </div>
                 <div>
                   <div className="text-white font-bold">{post.author}</div>
-                  <div className="text-slate-500 text-sm">Expert Precious Metals Analyst</div>
+                  <div className="text-slate-500 text-sm">
+                    {post.authorId?.title || "Expert Precious Metals Analyst"}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <button className="p-2 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-500 hover:border-amber-500 transition-all">
-                  <span className="sr-only">Share on Facebook</span>
-                  <Facebook size={20} />
-                </button>
-                <button className="p-2 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-500 hover:border-amber-500 transition-all">
-                  <span className="sr-only">Share on LinkedIn</span>
-                  <Linkedin size={20} />
-                </button>
+              <div className="flex gap-3">
+                {post.authorId?.socialLinks?.facebook && (
+                  <a href={post.authorId.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-500 hover:border-amber-500 transition-all">
+                    <span className="sr-only">Facebook</span>
+                    <Facebook size={18} />
+                  </a>
+                )}
+                {post.authorId?.socialLinks?.linkedin && (
+                  <a href={post.authorId.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-500 hover:border-amber-500 transition-all">
+                    <span className="sr-only">LinkedIn</span>
+                    <Linkedin size={18} />
+                  </a>
+                )}
+                {post.authorId?.socialLinks?.twitter && (
+                  <a href={post.authorId.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-500 hover:border-amber-500 transition-all">
+                    <span className="sr-only">X (Twitter)</span>
+                    <Twitter size={18} />
+                  </a>
+                )}
+                {post.authorId?.socialLinks?.pinterest && (
+                  <a href={post.authorId.socialLinks.pinterest} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-500 hover:border-amber-500 transition-all">
+                    <span className="sr-only">Pinterest</span>
+                    <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.965 1.406-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.261 7.929-7.261 4.164 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146 1.124.347 2.317.535 3.554.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/>
+                    </svg>
+                  </a>
+                )}
+                {post.authorId?.socialLinks?.website && (
+                  <a href={post.authorId.socialLinks.website} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-500 hover:border-amber-500 transition-all">
+                    <span className="sr-only">Website</span>
+                    <Globe size={18} />
+                  </a>
+                )}
               </div>
             </div>
           </div>
