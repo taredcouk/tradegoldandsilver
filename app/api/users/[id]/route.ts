@@ -20,7 +20,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     await dbConnect();
-    const { username, email, password, role, title, socialLinks } = await request.json();
+    const { username, email, password, role, title, socialLinks, firstName, lastName } = await request.json();
 
     const updateData: {
       username?: string;
@@ -34,7 +34,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         twitter?: string;
         pinterest?: string;
         website?: string;
-      }
+      };
+      firstName?: string;
+      lastName?: string;
     } = {};
 
     if (isAdmin) {
@@ -46,14 +48,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
       if (title) updateData.title = title;
       if (socialLinks) updateData.socialLinks = socialLinks;
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
     } else if (isSelf) {
-      // Users can update their password, title, and social links
+      // Users can update their password, title, social links, firstName, lastName
       if (password) {
         updateData.password = await bcrypt.hash(password, 10);
       }
 
       if (title) updateData.title = title;
       if (socialLinks) updateData.socialLinks = socialLinks;
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
 
       // Prevent sensitive fields from being updated by non-admins
       if (username || email || role) {

@@ -49,6 +49,8 @@ interface User {
   username: string;
   email: string;
   role: "user" | "admin";
+  firstName?: string;
+  lastName?: string;
   title?: string;
   socialLinks?: {
     facebook: string;
@@ -124,6 +126,8 @@ export default function DashboardPage() {
     email: "",
     password: "",
     role: "user" as "user" | "admin",
+    firstName: "",
+    lastName: "",
     title: "",
     socialLinks: {
       facebook: "",
@@ -158,6 +162,8 @@ export default function DashboardPage() {
           // Populate settings form
           setFormData(prev => ({
             ...prev,
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
             title: data.title || "Precious Metals Analyst",
             socialLinks: {
               facebook: data.socialLinks?.facebook || "",
@@ -302,6 +308,8 @@ export default function DashboardPage() {
           email: userData.email,
           password: "",
           role: userData.role,
+          firstName: userData.firstName || "",
+          lastName: userData.lastName || "",
           title: userData.title || "Precious Metals Analyst",
           socialLinks: {
             facebook: userData.socialLinks?.facebook || "",
@@ -318,6 +326,8 @@ export default function DashboardPage() {
           email: "",
           password: "",
           role: "user",
+          firstName: "",
+          lastName: "",
           title: "Precious Metals Analyst",
           socialLinks: {
             facebook: "",
@@ -477,6 +487,8 @@ export default function DashboardPage() {
     try {
       const updatePayload: {
         title: string;
+        firstName: string;
+        lastName: string;
         socialLinks: {
           facebook: string;
           linkedin: string;
@@ -487,6 +499,8 @@ export default function DashboardPage() {
         password?: string
       } = {
         title: formData.title,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         socialLinks: formData.socialLinks
       };
 
@@ -1024,6 +1038,26 @@ export default function DashboardPage() {
                       <div className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">First Name</label>
+                            <input
+                              type="text"
+                              value={formData.firstName}
+                              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                              placeholder="Your first name"
+                              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all text-slate-300"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Last Name</label>
+                            <input
+                              type="text"
+                              value={formData.lastName}
+                              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                              placeholder="Your last name"
+                              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all text-slate-300"
+                            />
+                          </div>
+                          <div>
                             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Professional Title</label>
                             <input
                               type="text"
@@ -1185,13 +1219,11 @@ export default function DashboardPage() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-slate-400">Author</label>
-                          <input
-                            type="text"
-                            required
-                            value={blogFormData.author}
-                            onChange={(e) => setBlogFormData({ ...blogFormData, author: e.target.value })}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
-                          />
+                          <div className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-2 text-slate-500 italic">
+                            {currentUser?.firstName && currentUser?.lastName
+                              ? `${currentUser.firstName} ${currentUser.lastName}`
+                              : currentUser?.username}
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-slate-400">Cover Image URL</label>
@@ -1359,6 +1391,26 @@ export default function DashboardPage() {
                     <>
                       {(showModal === 'add' || showModal === 'edit') && (
                         <>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-slate-400">First Name</label>
+                              <input
+                                type="text"
+                                value={formData.firstName}
+                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium text-slate-400">Last Name</label>
+                              <input
+                                type="text"
+                                value={formData.lastName}
+                                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-all"
+                              />
+                            </div>
+                          </div>
                           <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-400">Username</label>
                             <input

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import Blog from '@/models/Blog';
+import User from '@/models/User';
 import { getSession } from '@/lib/auth';
 
 export async function GET() {
@@ -27,9 +28,16 @@ export async function POST(request: Request) {
 
   try {
     await dbConnect();
-    const { title, body, author, cover, status, submitForApproval } = await request.json();
+    const user = await User.findById(session.id);
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
-    if (!title || !body || !author || !cover) {
+    const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username;
+
+    const { title, body, cover, status, submitForApproval } = await request.json();
+
+    if (!title || !body || !cover) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -39,7 +47,7 @@ export async function POST(request: Request) {
     const blog = await Blog.create({
       title,
       body,
-      author,
+      author: fullName,
       cover,
       status: blogStatus,
       authorId: session.id
@@ -50,7 +58,7 @@ export async function POST(request: Request) {
       await BlogRequest.create({
         type: 'create',
         blogId: blog._id,
-        data: { title, body, author, cover },
+        data: { title, body, author: fullName, cover },
         requesterId: session.id,
         status: 'pending'
       });
