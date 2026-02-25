@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import BlogRequest from '@/models/BlogRequest';
 import Blog from '@/models/Blog';
+import User from '@/models/User';
+import bcrypt from 'bcryptjs';
 import { isAdmin } from '@/lib/auth';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -28,6 +30,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       await Blog.findByIdAndUpdate(blogRequest.blogId, blogRequest.data);
     } else if (blogRequest.type === 'delete') {
       await Blog.findByIdAndDelete(blogRequest.blogId);
+    } else if (blogRequest.type === 'password_reset') {
+      const { newPassword } = await request.json();
+      if (!newPassword) {
+        return NextResponse.json({ error: 'Please provide a new password for the user' }, { status: 400 });
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await User.findByIdAndUpdate(blogRequest.requesterId, { password: hashedPassword });
     }
 
     blogRequest.status = 'approved';

@@ -75,7 +75,7 @@ interface Blog {
 
 interface BlogRequest {
   _id: string;
-  type: 'create' | 'update' | 'delete';
+  type: 'create' | 'update' | 'delete' | 'password_reset';
   blogId?: Blog;
   data?: {
     title: string;
@@ -149,6 +149,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -298,6 +299,7 @@ export default function DashboardPage() {
     setError(null);
     setSuccess(null);
     setAdminNotes("");
+    setNewPassword("");
 
     if (type === 'add' || type === 'edit' || type === 'reset' || type === 'delete') {
       if (data) {
@@ -370,7 +372,7 @@ export default function DashboardPage() {
     try {
       let url = '/api/users';
       let method = 'POST';
-      let body: any = { ...formData };
+      let body: Record<string, unknown> | null = { ...formData };
 
       if (showModal === 'edit' || showModal === 'reset' || showModal === 'delete') {
         url = `/api/users/${selectedUser?._id}`;
@@ -457,7 +459,10 @@ export default function DashboardPage() {
       const response = await fetch(`/api/blogs/requests/${selectedRequest?._id}/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: action === 'reject' ? JSON.stringify({ adminNotes }) : undefined
+        body: JSON.stringify({
+          adminNotes,
+          newPassword: action === 'approve' ? newPassword : undefined
+        })
       });
 
       const resData = await response.json();
@@ -990,13 +995,16 @@ export default function DashboardPage() {
                               <td className="px-6 py-4">
                                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                                   req.type === 'create' ? 'bg-green-500/10 text-green-500' :
-                                  req.type === 'update' ? 'bg-blue-500/10 text-blue-500' : 'bg-red-500/10 text-red-500'
+                                  req.type === 'update' ? 'bg-blue-500/10 text-blue-500' :
+                                  req.type === 'password_reset' ? 'bg-amber-500/10 text-amber-500' : 'bg-red-500/10 text-red-500'
                                 }`}>
-                                  {req.type}
+                                  {req.type === 'password_reset' ? 'Password Reset' : req.type}
                                 </span>
                               </td>
                               <td className="px-6 py-4 font-medium">
-                                {req.type === 'create' ? req.data?.title : req.blogId?.title || 'Unknown Blog'}
+                                {req.type === 'create' ? req.data?.title :
+                                 req.type === 'password_reset' ? 'Account Credentials' :
+                                 req.blogId?.title || 'Unknown Blog'}
                               </td>
                               {currentUser?.role === 'admin' && (
                                 <td className="px-6 py-4 text-slate-400">
@@ -1356,37 +1364,64 @@ export default function DashboardPage() {
                 </form>
               ) : showModal === 'reviewRequest' ? (
                 <div className="p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Current Version */}
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Current Version</h4>
-                      {selectedRequest?.type === 'create' ? (
-                        <div className="p-4 bg-slate-950/50 rounded-xl border border-slate-800 text-slate-500 italic">
-                          New Blog (No current version)
-                        </div>
-                      ) : (
-                        <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
-                          <p className="font-bold text-white">{selectedRequest?.blogId?.title}</p>
-                          <div className="text-xs text-slate-400 max-h-40 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedRequest?.blogId?.body || '' }} />
-                        </div>
-                      )}
-                    </div>
+                  {selectedRequest?.type === 'password_reset' ? (
+                    <div className="space-y-6">
+                      <div className="bg-amber-500/10 border border-amber-500/20 p-6 rounded-2xl">
+                        <h4 className="text-amber-500 font-bold mb-2 uppercase tracking-wider flex items-center gap-2 text-sm">
+                          <Key size={18} /> Password Reset Request
+                        </h4>
+                        <p className="text-slate-300 text-sm">
+                          User <span className="text-white font-bold">{selectedRequest.requesterId.username}</span> ({selectedRequest.requesterId.email}) has requested a password reset.
+                        </p>
+                      </div>
 
-                    {/* Proposed Version */}
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-bold text-amber-500 uppercase tracking-wider">Proposed Changes</h4>
-                      {selectedRequest?.type === 'delete' ? (
-                        <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20 text-red-500 font-bold">
-                          DELETION REQUEST
-                        </div>
-                      ) : (
-                        <div className="p-4 bg-slate-950 rounded-xl border border-amber-500/30 space-y-3 shadow-lg shadow-amber-500/5">
-                          <p className="font-bold text-white">{selectedRequest?.data?.title}</p>
-                          <div className="text-xs text-slate-300 max-h-40 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedRequest?.data?.body || '' }} />
-                        </div>
-                      )}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-400">Enter New Password</label>
+                        <input
+                          type="text"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Type the new password for this user..."
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:border-amber-500 outline-none transition-all text-white font-mono"
+                        />
+                        <p className="text-[10px] text-slate-500 italic">
+                          * You must provide this password to the user manually after approval.
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Current Version */}
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Current Version</h4>
+                        {selectedRequest?.type === 'create' ? (
+                          <div className="p-4 bg-slate-950/50 rounded-xl border border-slate-800 text-slate-500 italic">
+                            New Blog (No current version)
+                          </div>
+                        ) : (
+                          <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                            <p className="font-bold text-white">{selectedRequest?.blogId?.title}</p>
+                            <div className="text-xs text-slate-400 max-h-40 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedRequest?.blogId?.body || '' }} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Proposed Version */}
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-bold text-amber-500 uppercase tracking-wider">Proposed Changes</h4>
+                        {selectedRequest?.type === 'delete' ? (
+                          <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20 text-red-500 font-bold">
+                            DELETION REQUEST
+                          </div>
+                        ) : (
+                          <div className="p-4 bg-slate-950 rounded-xl border border-amber-500/30 space-y-3 shadow-lg shadow-amber-500/5">
+                            <p className="font-bold text-white">{selectedRequest?.data?.title}</p>
+                            <div className="text-xs text-slate-300 max-h-40 overflow-y-auto" dangerouslySetInnerHTML={{ __html: selectedRequest?.data?.body || '' }} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-2 pt-4">
                     <label className="text-sm font-medium text-slate-400">Admin Notes (for rejection)</label>
