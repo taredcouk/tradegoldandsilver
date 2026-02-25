@@ -612,9 +612,9 @@ export default function DashboardPage() {
             }`}
           >
             <Clock size={20} /> Requests
-            {activeTab !== "requests" && requests.filter(r => (currentUser?.role === 'admin' ? r.status === 'pending' : r.status === 'rejected')).length > 0 && (
+            {requests.filter(r => (currentUser?.role === 'admin' ? r.status === 'pending' : (r.status === 'pending' || r.status === 'rejected'))).length > 0 && (
               <span className={`ml-auto ${currentUser?.role === 'admin' ? 'bg-amber-500' : 'bg-red-500'} text-slate-950 text-[10px] font-bold px-1.5 py-0.5 rounded-full`}>
-                {requests.filter(r => (currentUser?.role === 'admin' ? r.status === 'pending' : r.status === 'rejected')).length}
+                {requests.filter(r => (currentUser?.role === 'admin' ? r.status === 'pending' : (r.status === 'pending' || r.status === 'rejected'))).length}
               </span>
             )}
           </button>
