@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IBlogRequest extends Document {
-  type: 'create' | 'update' | 'delete';
+  type: 'create' | 'update' | 'delete' | 'password_reset';
   blogId?: mongoose.Types.ObjectId; // For update and delete
   data?: {
     title: string;
@@ -18,7 +18,7 @@ export interface IBlogRequest extends Document {
 
 const BlogRequestSchema: Schema = new Schema(
   {
-    type: { type: String, enum: ['create', 'update', 'delete'], required: true },
+    type: { type: String, enum: ['create', 'update', 'delete', 'password_reset'], required: true },
     blogId: { type: Schema.Types.ObjectId, ref: 'Blog' },
     data: {
       title: { type: String },
