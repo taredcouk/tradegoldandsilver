@@ -1,0 +1,23 @@
+services:
+  tradegoldandsilver-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tradegoldandsilver-web
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      VIRTUAL_HOST: tradegoldandsilver.online,www.tradegoldandsilver.online
+      LETSENCRYPT_HOST: tradegoldandsilver.online,www.tradegoldandsilver.online
+      LETSENCRYPT_EMAIL: admin@tradegoldandsilver.online
+      VIRTUAL_PORT: "3000"
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+    networks:
+      - docker
+
+networks:
+  docker:
+    external: true
+    name: docker
