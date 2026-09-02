@@ -18,6 +18,15 @@ export const metadata: Metadata = {
   title: "Trade Gold and Silver Online",
   description:
     "Buy and sell gold and silver online with a secure, professional-grade platform.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     title: "Trade Gold and Silver Online",
     description:
