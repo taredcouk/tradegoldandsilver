@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://tradegoldandsilver.online"),
+  alternates: {
+    canonical: "/",
+  },
   title: "Trade Gold and Silver Online",
   description:
     "Buy and sell gold and silver online with a secure, professional-grade platform.",
