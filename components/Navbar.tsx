@@ -7,6 +7,9 @@ const navLinks = [
   { name: "Services", href: "#services" },
   { name: "About", href: "#about" },
   { name: "Roadmap", href: "#roadmap" },
+  { name: "Comparison", href: "#comparison" },
+  { name: "Charts", href: "#charts" },
+  { name: "Calculator", href: "#tools" },
   { name: "FAQ", href: "#faq" },
 ];
 
