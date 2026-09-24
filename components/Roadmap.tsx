@@ -46,9 +46,9 @@ export default function Roadmap() {
   return (
     <section id="roadmap" className="scroll-mt-24 relative overflow-hidden bg-slate-950 py-24">
       {/* Background ambient lighting */}
-      <div className="pointer-events-none absolute inset-0 opacity-15">
-        <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-amber-500/30 blur-[140px]" />
-        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-amber-500/20 blur-[140px]" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-15">
+        <div className="absolute left-1/4 top-1/4 h-96 w-96 max-w-full rounded-full bg-amber-500/30 blur-[140px]" />
+        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 max-w-full rounded-full bg-amber-500/20 blur-[140px]" />
       </div>
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
