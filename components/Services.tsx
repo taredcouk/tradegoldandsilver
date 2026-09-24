@@ -1,29 +1,25 @@
-import { CircleDot, Coins, Diamond, Gem } from "lucide-react";
+import Image from "next/image";
 
 const services = [
   {
     title: "Buy and Sell Gold",
     description:
       "Trade physical gold on a globally trusted platform with transparent market pricing.",
-    icon: <Coins className="h-8 w-8 text-slate-900" />,
   },
   {
     title: "Buy and Sell Silver",
     description:
       "Access liquid silver markets and execute trades in a secure online environment.",
-    icon: <CircleDot className="h-8 w-8 text-slate-900" />,
   },
   {
     title: "Buy and Sell Platinum",
     description:
       "Diversify your holdings with platinum using easy, professional-grade tools.",
-    icon: <Diamond className="h-8 w-8 text-slate-900" />,
   },
   {
     title: "Buy and Sell Palladium",
     description:
       "Expand portfolio exposure with real-time palladium trading opportunities.",
-    icon: <Gem className="h-8 w-8 text-slate-900" />,
   },
 ];
 
@@ -46,8 +42,14 @@ export default function Services() {
               key={service.title}
               className="group flex flex-col items-center rounded-2xl border border-slate-700/50 bg-slate-800/40 p-8 text-center transition-all hover:border-slate-600 hover:bg-slate-800/60"
             >
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg">
-                {service.icon}
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-800 border border-slate-700/60 shadow-lg group-hover:border-amber-500/50 transition-colors">
+                <Image
+                  src="/precious-metal-icon.png"
+                  alt={`${service.title} icon`}
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 object-contain"
+                />
               </div>
               <h3 className="mb-4 text-xl font-bold text-white transition-colors group-hover:text-amber-500">
                 {service.title}
