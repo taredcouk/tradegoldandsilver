@@ -1,66 +1,57 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-declare global {
-  interface Window {
-    BullionVaultChart?: new (options: Record<string, unknown>, containerId: string) => void;
-  }
-}
-
 export default function LiveChartSection() {
-  const containerId = "bvChartContainer";
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  const chartRef = useRef<boolean>(false);
-
-  useEffect(() => {
-    // Check if script is already present
-    const existingScript = document.querySelector(
-      'script[src*="bullionvaultchart.js"]'
-    );
-
-    if (existingScript) {
-      if (window.BullionVaultChart) {
-        setScriptLoaded(true);
-      } else {
-        existingScript.addEventListener("load", () => setScriptLoaded(true));
-      }
-    } else {
-      const script = document.createElement("script");
-      script.src = "https://www.bullionvault.com/chart/bullionvaultchart.js?v=1";
-      script.async = true;
-      script.onload = () => setScriptLoaded(true);
-      document.head.appendChild(script);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (scriptLoaded && window.BullionVaultChart && !chartRef.current) {
-      chartRef.current = true;
-      const options = {
-        bullion: "gold",
-        currency: "USD",
-        timeframe: "1w",
-        chartType: "line",
-        miniChartModeAxis: "both",
-        referrerID: "taredcouk",
-        containerDefinedSize: true,
-        miniChartMode: false,
-        displayLatestPriceLine: true,
-        switchBullion: true,
-        switchCurrency: true,
-        switchTimeframe: true,
-        switchChartType: true,
-        exportButton: true,
-      };
-
-      try {
-        new window.BullionVaultChart(options, containerId);
-      } catch (err) {
-        console.error("Failed to initialize BullionVaultChart:", err);
-      }
-    }
-  }, [scriptLoaded]);
+  const iframeHtml = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          }
+          #chartContainer {
+            width: 100%;
+            height: 100%;
+          }
+        </style>
+        <script type="text/javascript" src="https://www.bullionvault.com/chart/bullionvaultchart.js?v=1"></script>
+      </head>
+      <body>
+        <div id="chartContainer"></div>
+        <script type="text/javascript">
+          window.addEventListener('DOMContentLoaded', function() {
+            var options = {
+              bullion: 'gold',
+              currency: 'USD',
+              timeframe: '1w',
+              chartType: 'line',
+              miniChartModeAxis: 'both',
+              referrerID: 'taredcouk',
+              containerDefinedSize: true,
+              miniChartMode: false,
+              displayLatestPriceLine: true,
+              switchBullion: true,
+              switchCurrency: true,
+              switchTimeframe: true,
+              switchChartType: true,
+              exportButton: true
+            };
+            if (typeof BullionVaultChart !== 'undefined') {
+              new BullionVaultChart(options, 'chartContainer');
+            }
+          });
+        </script>
+      </body>
+    </html>
+  `;
 
   return (
     <section id="charts" className="scroll-mt-24 bg-slate-950 py-16 border-b border-slate-800/80">
@@ -75,9 +66,11 @@ export default function LiveChartSection() {
         </div>
 
         <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6 shadow-2xl backdrop-blur">
-          <div
-            id={containerId}
-            className="w-full min-h-[420px] h-[500px] overflow-hidden rounded-xl bg-white/95"
+          <iframe
+            srcDoc={iframeHtml}
+            title="BullionVault Live Price Chart"
+            className="w-full h-[500px] rounded-xl border-0 bg-white"
+            loading="lazy"
           />
         </div>
       </div>
