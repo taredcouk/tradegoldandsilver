@@ -11,7 +11,7 @@ const steps = [
   },
   {
     title: "Get Welcome Benefit",
-    description: "Start with referral benefits and platform onboarding guidance.",
+    description: "Receive FREE (4g) of silver to get you started",
     icon: Gift,
   },
   {
