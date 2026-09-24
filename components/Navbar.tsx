@@ -24,7 +24,7 @@ export default function Navbar() {
         <a href="#hero" className="text-2xl font-bold tracking-tight">
           <span className="text-white">Trade</span>
           <span className="text-amber-500">Gold</span>
-          <span className="text-slate-300">&</span>
+          <span className="text-white">&</span>
           <span className="text-slate-300">Silver</span>
         </a>
 

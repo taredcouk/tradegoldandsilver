@@ -14,7 +14,9 @@ export default function Hero() {
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
             The best place to <span className="text-green-500">Buy</span> and {" "}
             <span className="text-red-500">Sell</span>{" "}
-            <span className="text-amber-500">gold and silver</span> online
+            <span className="text-amber-500">gold</span>{" "}
+            <span className="text-white">and</span>{" "}
+            <span className="text-slate-300">silver</span> online
           </h1>
 
           <p className="mt-6 max-w-3xl text-xl leading-relaxed text-slate-300 lg:text-2xl">
