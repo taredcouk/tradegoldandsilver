@@ -18,13 +18,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  title: "Trade Gold and Silver Online",
+  title: "Online Precious Metals Exchange | Trade Gold, Silver & Platinum",
   description:
-    "Buy and sell gold and silver online with a secure, professional-grade platform.",
+    "Buy allocated physical gold, silver, platinum, and palladium in fractional amounts. Access low spreads, insured vault storage, and global market liquidity.",
   openGraph: {
-    title: "Trade Gold and Silver Online",
+    title: "Online Precious Metals Exchange | Trade Gold, Silver & Platinum",
     description:
-      "Buy and sell gold and silver online with a secure, professional-grade platform.",
+      "Buy allocated physical gold, silver, platinum, and palladium in fractional amounts. Access low spreads, insured vault storage, and global market liquidity.",
     type: "website",
     url: "https://tradegoldandsilver.online",
     images: ["/hero-bg.jpg"],
