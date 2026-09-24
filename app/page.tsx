@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import LiveChartSection from "@/components/LiveChartSection";
 import Services from "@/components/Services";
 import About from "@/components/About";
+import PreciousMetalsComparisonTable from "@/components/PreciousMetalsComparisonTable";
 import Roadmap from "@/components/Roadmap";
 import GoldSilverCalculator from "@/components/GoldSilverCalculator";
 import FAQ from "@/components/FAQ";
@@ -31,6 +32,7 @@ export default function Home() {
         <LiveChartSection />
         <Services />
         <About />
+        <PreciousMetalsComparisonTable />
         <Roadmap />
         <GoldSilverCalculator />
         <FAQ />
