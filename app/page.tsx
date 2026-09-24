@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import LiveChartSection from "@/components/LiveChartSection";
 import Services from "@/components/Services";
 import About from "@/components/About";
 import Roadmap from "@/components/Roadmap";
@@ -26,6 +27,7 @@ export default function Home() {
       <Navbar />
       <main className="flex-1">
         <Hero />
+        <LiveChartSection />
         <Services />
         <About />
         <Roadmap />
