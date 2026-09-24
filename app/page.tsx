@@ -29,11 +29,11 @@ export default function Home() {
       <Navbar />
       <main className="flex-1">
         <Hero />
+        <LiveChartSection />
         <Services />
         <About />
-        <Roadmap />
         <PreciousMetalsComparisonTable />
-        <LiveChartSection />
+        <Roadmap />
         <GoldSilverCalculator />
         <FAQ />
       </main>
