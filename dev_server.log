@@ -1,0 +1,16 @@
+
+> tradegoldandsilver@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.1.12
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.8s
+ ✓ Compiled /middleware in 171ms
+ ✓ Compiled (98 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 4.6s (1418 modules)
+ HEAD / 200 in 5161ms
+ GET / 200 in 192ms
