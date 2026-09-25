@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import LiveChartSection from "@/components/LiveChartSection";
 import Services from "@/components/Services";
 import About from "@/components/About";
+import PreciousMetalsComparisonTable from "@/components/PreciousMetalsComparisonTable";
 import Roadmap from "@/components/Roadmap";
+import GoldSilverCalculator from "@/components/GoldSilverCalculator";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 
@@ -29,6 +32,9 @@ export default function Home() {
         <Services />
         <About />
         <Roadmap />
+        <PreciousMetalsComparisonTable />
+        <LiveChartSection />
+        <GoldSilverCalculator />
         <FAQ />
       </main>
       <Footer />

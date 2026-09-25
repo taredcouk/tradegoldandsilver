@@ -12,14 +12,13 @@ export default function Hero() {
       <div className="container relative z-10 mx-auto px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div className="max-w-4xl">
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-            The best place to <span className="text-green-500">Buy</span> and {" "}
-            <span className="text-red-500">Sell</span>{" "}
-            <span className="text-amber-500">gold and silver</span> online
+            The Best Place to Trade &amp; Store Physical{" "}
+            <span className="text-amber-500">Gold</span> and{" "}
+            <span className="text-slate-300">Silver</span> Online
           </h1>
 
           <p className="mt-6 max-w-3xl text-xl leading-relaxed text-slate-300 lg:text-2xl">
-            Experience the world&apos;s most popular gold investment service.
-            Secure, professional-grade bullion trading for everyone.
+            Bridge the gap between digital convenience and physical security. Trade allocated fractional Gold, Silver, Platinum, and Palladium with 24/7 global liquidity.
           </p>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">

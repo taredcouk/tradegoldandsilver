@@ -7,6 +7,9 @@ const navLinks = [
   { name: "Services", href: "#services" },
   { name: "About", href: "#about" },
   { name: "Roadmap", href: "#roadmap" },
+  { name: "Comparison", href: "#comparison" },
+  { name: "Charts", href: "#charts" },
+  { name: "Calculator", href: "#tools" },
   { name: "FAQ", href: "#faq" },
 ];
 
@@ -21,11 +24,11 @@ export default function Navbar() {
         <a href="#hero" className="text-2xl font-bold tracking-tight">
           <span className="text-white">Trade</span>
           <span className="text-amber-500">Gold</span>
-          <span className="text-slate-300">&</span>
+          <span className="text-white">&</span>
           <span className="text-slate-300">Silver</span>
         </a>
 
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-6 lg:flex xl:gap-8">
           {navLinks.map((link) => (
             <a
               key={link.name}
@@ -41,7 +44,7 @@ export default function Navbar() {
         <button
           type="button"
           onClick={() => setIsOpen((v) => !v)}
-          className="rounded-md p-2 text-slate-300 hover:bg-slate-800 hover:text-white md:hidden"
+          className="rounded-md p-2 text-slate-300 hover:bg-slate-800 hover:text-white lg:hidden"
           aria-label="Toggle menu"
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,7 +54,7 @@ export default function Navbar() {
       </nav>
 
       {isOpen && (
-        <div className="border-t border-slate-800 bg-slate-900 md:hidden">
+        <div className="border-t border-slate-800 bg-slate-900 lg:hidden">
           <div className="container mx-auto space-y-2 px-4 py-3 sm:px-6">
             {navLinks.map((link) => (
               <a
