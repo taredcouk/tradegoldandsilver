@@ -1,9 +1,15 @@
 .git
 .gitignore
+.dockerignore
+Dockerfile
+.env
+.env.*
+!.env.example
 README.md
 LANDING_PAGE_MEMORY.md
 node_modules
 npm-debug.log
+*.log
 .next
 qa
 assets

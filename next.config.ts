@@ -3,16 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-    ],
+    // This site only uses local static images; keep the image optimizer from
+    // fetching attacker-controlled remote content.
+    unoptimized: true,
   },
 };
 

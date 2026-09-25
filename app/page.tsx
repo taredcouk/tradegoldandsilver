@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import LiveChartSection from "@/components/LiveChartSection";
@@ -23,7 +24,9 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function Home() {
+export default async function Home() {
+  const nonce = (await headers()).get("x-nonce") ?? "";
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
       <Navbar />
@@ -33,7 +36,7 @@ export default function Home() {
         <About />
         <Roadmap />
         <PreciousMetalsComparisonTable />
-        <LiveChartSection />
+        <LiveChartSection nonce={nonce} />
         <GoldSilverCalculator />
         <FAQ />
       </main>

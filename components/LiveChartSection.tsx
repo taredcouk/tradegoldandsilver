@@ -1,13 +1,13 @@
 "use client";
 
-export default function LiveChartSection() {
+export default function LiveChartSection({ nonce }: { nonce: string }) {
   const iframeHtml = `
     <!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <style>
+        <style nonce="${nonce}">
           html, body {
             margin: 0;
             padding: 0;
@@ -22,11 +22,11 @@ export default function LiveChartSection() {
             height: 100%;
           }
         </style>
-        <script type="text/javascript" src="https://www.bullionvault.com/chart/bullionvaultchart.js?v=1"></script>
+        <script nonce="${nonce}" type="text/javascript" src="https://www.bullionvault.com/chart/bullionvaultchart.js?v=1"></script>
       </head>
       <body>
         <div id="chartContainer"></div>
-        <script type="text/javascript">
+        <script nonce="${nonce}" type="text/javascript">
           window.addEventListener('DOMContentLoaded', function() {
             var options = {
               bullion: 'gold',
@@ -69,6 +69,8 @@ export default function LiveChartSection() {
           <iframe
             srcDoc={iframeHtml}
             title="BullionVault Live Price Chart"
+            sandbox="allow-scripts"
+            referrerPolicy="no-referrer"
             className="w-full h-[500px] rounded-xl border-0 bg-white"
             loading="lazy"
           />
