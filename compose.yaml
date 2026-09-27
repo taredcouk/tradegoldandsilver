@@ -13,7 +13,7 @@ services:
       LETSENCRYPT_HOST: tradegoldandsilver.online,www.tradegoldandsilver.online
       LETSENCRYPT_EMAIL: admin@tradegoldandsilver.online
       VIRTUAL_PORT: "3000"
-      VIRTUAL_NETWORK: tradegoldandsilver-proxy
+      VIRTUAL_NETWORK: docker
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
     networks:
@@ -39,4 +39,4 @@ services:
 networks:
   tradegoldandsilver-proxy:
     external: true
-    name: tradegoldandsilver-proxy
+    name: docker

@@ -27,8 +27,8 @@ export function middleware(request: NextRequest) {
   const csp = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.googletagmanager.com ${isDev ? "'unsafe-eval'" : ""}`.trim(),
-    "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://www.bullionvault.com",
-    `style-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-inline'" : ""}`,
+    "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://www.bullionvault.com https://chart-data.bullionvault.com wss://chart-data.bullionvault.com",
+    `style-src 'self' 'nonce-${nonce}' https://www.bullionvault.com${isDev ? " 'unsafe-inline'" : ""}`,
     // Framer Motion writes presentation styles as attributes; scripts remain
     // nonce-only in production.
     "style-src-attr 'unsafe-inline'",

@@ -1,60 +1,112 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
+declare global {
+  interface Window {
+    BullionVaultChart?: new (
+      options: Record<string, string | boolean>,
+      containerId: string,
+    ) => unknown;
+  }
+}
+
+const CHART_SCRIPT_ID = "bullionvault-chart-script";
+const CHART_CONTAINER_ID = "bullionvault-live-chart";
+
 export default function LiveChartSection({ nonce }: { nonce: string }) {
-  const iframeHtml = `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <style nonce="${nonce}">
-          html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-          }
-          #chartContainer {
-            width: 100%;
-            height: 100%;
-          }
-        </style>
-        <script nonce="${nonce}" type="text/javascript" src="https://www.bullionvault.com/chart/bullionvaultchart.js?v=1"></script>
-      </head>
-      <body>
-        <div id="chartContainer"></div>
-        <script nonce="${nonce}" type="text/javascript">
-          window.addEventListener('DOMContentLoaded', function() {
-            var options = {
-              bullion: 'gold',
-              currency: 'USD',
-              timeframe: '1w',
-              chartType: 'line',
-              miniChartModeAxis: 'both',
-              referrerID: 'taredcouk',
-              containerDefinedSize: true,
-              miniChartMode: false,
-              displayLatestPriceLine: true,
-              switchBullion: true,
-              switchCurrency: true,
-              switchTimeframe: true,
-              switchChartType: true,
-              exportButton: true
-            };
-            if (typeof BullionVaultChart !== 'undefined') {
-              new BullionVaultChart(options, 'chartContainer');
-            }
-          });
-        </script>
-      </body>
-    </html>
-  `;
+  const chartContainer = useRef<HTMLDivElement>(null);
+  const [chartState, setChartState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+
+  useEffect(() => {
+    const container = chartContainer.current;
+    if (!container) return;
+
+    let cancelled = false;
+    let script = document.getElementById(
+      CHART_SCRIPT_ID,
+    ) as HTMLScriptElement | null;
+
+    const showError = () => {
+      if (!cancelled) setChartState("error");
+    };
+
+    const initializeChart = () => {
+      if (cancelled) return;
+
+      if (!window.BullionVaultChart) {
+        showError();
+        return;
+      }
+
+      try {
+        new window.BullionVaultChart(
+          {
+            bullion: "gold",
+            currency: "USD",
+            timeframe: "1w",
+            chartType: "line",
+            miniChartModeAxis: "both",
+            referrerID: "taredcouk",
+            containerDefinedSize: true,
+            miniChartMode: false,
+            displayLatestPriceLine: true,
+            switchBullion: true,
+            switchCurrency: true,
+            switchTimeframe: true,
+            switchChartType: true,
+            // BullionVault's optional popup/export control can throw when its
+            // responsive control group is hidden or too narrow.
+            exportButton: false,
+          },
+          CHART_CONTAINER_ID,
+        );
+        setChartState("ready");
+      } catch {
+        showError();
+      }
+    };
+
+    const markScriptLoaded = () => {
+      if (script) script.dataset.loaded = "true";
+      initializeChart();
+    };
+
+    const markScriptFailed = () => showError();
+
+    if (window.BullionVaultChart) {
+      initializeChart();
+    } else {
+      if (!script) {
+        script = document.createElement("script");
+        script.id = CHART_SCRIPT_ID;
+        script.src = "https://www.bullionvault.com/chart/bullionvaultchart.js?v=1";
+        script.async = true;
+        script.nonce = nonce;
+      }
+
+      script.addEventListener("load", markScriptLoaded);
+      script.addEventListener("error", markScriptFailed);
+
+      if (script.dataset.loaded === "true") {
+        initializeChart();
+      } else if (!script.isConnected) {
+        document.head.appendChild(script);
+      }
+    }
+
+    return () => {
+      cancelled = true;
+      script?.removeEventListener("load", markScriptLoaded);
+      script?.removeEventListener("error", markScriptFailed);
+      container.replaceChildren();
+    };
+  }, [nonce]);
 
   return (
-    <section id="charts" className="scroll-mt-24 bg-slate-950 py-16 border-b border-slate-800/80">
+    <section id="charts" className="scroll-mt-24 border-b border-slate-800/80 bg-slate-950 py-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <h2 className="mb-4 text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl">
@@ -65,15 +117,24 @@ export default function LiveChartSection({ nonce }: { nonce: string }) {
           </p>
         </div>
 
-        <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6 shadow-2xl backdrop-blur">
-          <iframe
-            srcDoc={iframeHtml}
-            title="BullionVault Live Price Chart"
-            sandbox="allow-scripts"
-            referrerPolicy="no-referrer"
-            className="w-full h-[500px] rounded-xl border-0 bg-white"
-            loading="lazy"
-          />
+        <div className="mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-2xl backdrop-blur sm:p-6">
+          <div className="relative h-[500px] overflow-hidden rounded-xl bg-white sm:h-[560px]">
+            <div
+              id={CHART_CONTAINER_ID}
+              ref={chartContainer}
+              className="absolute inset-0"
+            />
+            {chartState !== "ready" && (
+              <div
+                className="absolute inset-0 grid place-items-center bg-white px-6 text-center text-sm text-slate-600"
+                role={chartState === "error" ? "alert" : "status"}
+              >
+                {chartState === "error"
+                  ? "The live chart is temporarily unavailable. Please try again shortly."
+                  : "Loading live market chart…"}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
