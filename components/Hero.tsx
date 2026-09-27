@@ -32,7 +32,9 @@ export default function Hero() {
           </div>
 
           <p className="mt-4 text-sm italic text-slate-400">
-            *Referral Ad: Tared Ltd earns a commission.
+            **Referral Ad: Tared Ltd earns a commission.<br />
+            ***Disclosure: tradegoldandsilver.online is an independent referral site. We may earn a commission if you open an account using our links, at no extra cost to you.<br />
+            ****The content on this website is for informational purposes only and does not constitute financial advice. Investing in precious metals involves risk.
           </p>
 
           <div className="mt-12 flex items-center gap-5 text-slate-400">

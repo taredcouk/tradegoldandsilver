@@ -7,10 +7,10 @@ export default function Footer() {
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl text-left">
             <p className="text-xs italic text-slate-400 font-medium">
-              *Referral Ad: Tared Ltd earns a commission.
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500">
-              The content on this website is for informational purposes only and does not constitute financial advice. Investing in precious metals involves risk.
+              *Terms & conditions apply.<br />
+              **Referral Ad: Tared Ltd earns a commission.<br />
+              ***Disclosure: tradegoldandsilver.online is an independent referral site. We may earn a commission if you open an account using our links, at no extra cost to you.<br />
+              ****The content on this website is for informational purposes only and does not constitute financial advice. Investing in precious metals involves risk.
             </p>
           </div>
           <div className="flex shrink-0 items-center justify-start lg:justify-end">

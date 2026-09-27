@@ -11,7 +11,7 @@ const steps = [
   },
   {
     title: "Get Welcome Benefit",
-    description: "Receive FREE (4g) of silver to get you started",
+    description: "Receive promotional gift upon registration*.",
     icon: Gift,
   },
   {
