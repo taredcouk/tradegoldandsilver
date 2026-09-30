@@ -75,6 +75,28 @@ export default function FAQ() {
         text: faq.answer,
       },
     })),
+    publisher: {
+      "@type": "Organization",
+      name: "Tared",
+      legalName: "Tared Ltd",
+      description:
+        "Tared Ltd is a design and advertising agency based in London, United Kingdom.",
+      url: "https://tared.co.uk/",
+      sameAs: [
+        "https://www.youtube.com/@taredcouk",
+        "https://www.linkedin.com/company/taredcouk",
+        "https://web.facebook.com/taredcouk",
+        "https://www.pinterest.com/taredcouk",
+        "https://threads.com/taredcouk",
+        "https://www.instagram.com/taredcouk",
+      ],
+      email: "support@tared.co.uk",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "London",
+        addressCountry: "GB",
+      },
+    },
   };
 
   return (

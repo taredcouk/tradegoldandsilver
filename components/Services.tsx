@@ -1,29 +1,57 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const services = [
   {
     titleMetal: "Gold",
+    href: "/",
     description:
       "Trade allocated physical gold on a globally trusted platform with transparent spot market pricing and low spreads.",
   },
   {
     titleMetal: "Silver",
+    href: "/",
     description:
       "Access deep liquid silver markets and execute physical bullion trades in a secure online trading environment.",
   },
   {
     titleMetal: "Platinum",
+    href: "/",
     description:
       "Diversify your holdings with physical platinum using easy, professional-grade execution and live chart analytics.",
   },
   {
     titleMetal: "Palladium",
+    href: "/",
     description:
       "Expand portfolio exposure with real-time palladium trading opportunities and global vault secure storage.",
   },
 ];
 
 export default function Services() {
+  const organizationSchema = {
+    "@type": "Organization",
+    name: "Tared",
+    legalName: "Tared Ltd",
+    description:
+      "Tared Ltd is a design and advertising agency based in London, United Kingdom.",
+    url: "https://tared.co.uk/",
+    sameAs: [
+      "https://www.youtube.com/@taredcouk",
+      "https://www.linkedin.com/company/taredcouk",
+      "https://web.facebook.com/taredcouk",
+      "https://www.pinterest.com/taredcouk",
+      "https://threads.com/taredcouk",
+      "https://www.instagram.com/taredcouk",
+    ],
+    email: "support@tared.co.uk",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "London",
+      addressCountry: "GB",
+    },
+  };
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -34,11 +62,7 @@ export default function Services() {
         "@type": "Service",
         name: `Buy and Sell ${service.titleMetal}`,
         description: service.description,
-        provider: {
-          "@type": "Organization",
-          name: "Tared Ltd",
-          url: "https://tradegoldandsilver.online",
-        },
+        provider: organizationSchema,
       },
     })),
   };
@@ -79,6 +103,14 @@ export default function Services() {
                 <span className="text-red-500">Sell</span> {service.titleMetal}
               </h3>
               <p className="leading-relaxed text-slate-400">{service.description}</p>
+              <div className="mt-auto pt-6">
+                <Link
+                  href={service.href}
+                  className="font-semibold text-amber-500 hover:text-amber-400 hover:underline transition-colors"
+                >
+                  Explore More
+                </Link>
+              </div>
             </article>
           ))}
         </div>
